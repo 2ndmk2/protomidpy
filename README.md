@@ -1,16 +1,16 @@
-# jscon
-Evaluating astrometric precision for crowded region
+# georadial
+Estimating radial profile & geometry for proto-planetary disks in ALMA 
 
 ## Install 
 For normal install, 
 * python setup.py install
-* *For conda/pip env*, go to parental directory of jscon, and "pip install ./jasmine_contami"
+* *For conda/pip env*, go to parental directory of georadial, and "pip install ./georadial"
 
 ## Install for development
 For developers, 
 
 * python setup.py develop
-*  *For conda/pip env*, go to parental directory of tesarot, and "pip install -e ./jasmine_contami"
+*  *For conda/pip env*, go to parental directory of georadial, and "pip install -e ./georadial"
 
 ## Test run
 Go to ipynb & tests folder
