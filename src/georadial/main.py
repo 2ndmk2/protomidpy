@@ -89,30 +89,6 @@ def grid_search_evidence_2(gamma_arc_arr, gamma2_arc_arr, log10_alpha_arr, other
     return evidence_mat, gamma_mat, alpha_mat, term1_mat, term2_mat, term3_mat
 
 
-def grid_search_evidence_fixed_geo(u_d, v_d, vis_d, wgt_d, cov, nu_now, log10_alpha_arr, gamma_arc_arr,  header_name_for_file = "test", out_dir = "./", nrad=30, dpix= 0.1 * ARCSEC_TO_RAD, 
-    n_bin_linear=200, n_bin_log=200,  pa_assumed=0, cosi_assumed=0, delta_x_assumed =0, delta_y_assumed =0):
-
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-    R_out = nrad* dpix 
-    other_thetas = [cosi_assumed,  pa_assumed, delta_x_assumed, delta_y_assumed, 0]
-    gridfile = os.path.join(out_dir, header_name_for_file+ "grid.npz")
-    u_grid_1d, v_grid_1d, vis_grid_1d, noise_grid_1d, sigma_mat_1d, d_data = data_gridding.get_gridded_obs_data(gridfile, u_d, v_d, vis_d, wgt_d, n_bin_linear, n_bin_log, q_min_max_bin)
-    r_n, jn, qmax, q_n, H_mat_model, q_dist_2d_model, N_d, r_dist, d_A_minus1_d, logdet_for_sigma_d  = hankel.prepare(R_out, nrad,  d_data, sigma_mat_1d)
-
-    for log10_alpha in log10_alpha_arr:
-        for gamma_arc in gamma_arc_arr:
-            gamma_input = [gamma_arc]
-            plotter.plot_gallary(out_dir, log10_alpha,gamma_input, r_n, other_thetas, u_grid_1d, v_grid_1d, R_out, nrad, dpix, d_data, \
-                sigma_mat_1d,  q_dist_2d_model, H_mat_model, cov, nu_now )
-
-    evidence_mat, gamma_mat, alpha_mat, term1_mat, term2_mat, term3_mat = grid_search_evidence_core(gamma_arc_arr, log10_alpha_arr , other_thetas, N_d, r_dist,  u_grid_1d, v_grid_1d, \
-        d_data, sigma_mat_1d,  R_out, nrad, dpix,  q_dist_2d_model, H_mat_model, cov, nu_now , out_dir )
-
-    np.savez(os.path.join(out_dir, "evidence") , evidence_mat = evidence_mat, gamma_mat = gamma_mat, alpha_mat = alpha_mat, \
-            term1_mat = term1_mat, term2_mat = term2_mat, term3_mat = term3_mat, log_alpha_arr =  log10_alpha_arr, gamma_arr = gamma_arc_arr)
-
-
 
 def grid_search_evidence_bin_rad(u_d, v_d, vis_d, wgt_d, cov, nu_now, log10_alpha_arr, gamma_arc_arr,  header_name_for_file = "test", out_dir = "./", nrad=300, dpix= 0.1 * ARCSEC_TO_RAD, 
     n_bin_log=200,  pa_assumed=0, q_min_max_bin = [1e3, 1e7], cosi_assumed=0, delta_x_assumed =0, delta_y_assumed =0):
@@ -122,11 +98,11 @@ def grid_search_evidence_bin_rad(u_d, v_d, vis_d, wgt_d, cov, nu_now, log10_alph
 
     R_out = nrad* dpix 
     other_thetas = [cosi_assumed,  pa_assumed, delta_x_assumed, delta_y_assumed, 0]
-    gridfile = os.path.join(out_dir, header_name_for_file+ "grid.npz")
-
-    q, q_v_zero , vis_d, wgt_d, noise_d, sigma_mat_1d, d_data = data_gridding.deproject_radial(u_d, v_d, vis_d, wgt_d, cosi_assumed, pa_assumed , delta_x_assumed, delta_y_assumed)    
+    gridfile = os.path.join(out_dir, header_name_for_file) +"grid"
+    q, q_v_zero , vis_d, wgt_d, noise_d, sigma_mat_1d, d_data = data_gridding.deproject_radial(u_d, v_d, vis_d, wgt_d, cosi_assumed, pa_assumed , delta_x_assumed, delta_y_assumed)  
     coord_for_grid  = data_gridding.log_gridding_1d( q_min_max_bin[0], q_min_max_bin[1],n_bin_log)
     q_grid_1d_lg_data, vis_grid_1d_lg_data, noise_grid_1d_lg_data, d_data_grid_1d, sigma_mat_grid_1d = data_gridding.data_binning_1d(q, vis_d, wgt_d,coord_for_grid)
+    np.savez(gridfile, u = q_grid_1d_lg_data, v = np.zeros_like(q_grid_1d_lg_data), vis = vis_grid_1d_lg_data, noise = noise_grid_1d_lg_data)
     r_n, jn, qmax, q_n, H_mat_model, q_dist_2d_model, N_d, r_dist, d_A_minus1_d, logdet_for_sigma_d  = hankel.prepare(R_out, nrad,  d_data_grid_1d, sigma_mat_grid_1d)
     u_grid_1d, v_grid_1d= q_grid_1d_lg_data, np.zeros_like(q_grid_1d_lg_data)
     H_mat , V_A_minus1_U , V_A_minus1_d = hankel.hankel_precomp(R_out, nrad, dpix, u_grid_1d,  v_grid_1d, d_data_grid_1d, sigma_mat_grid_1d, 1.0,0,0,0)

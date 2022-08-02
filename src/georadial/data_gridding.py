@@ -130,7 +130,16 @@ def deproject_radial(u_d, v_d, vis_d, wgt_d, cosi, pa, delta_x, delta_y):
     sigma_d = np.append(wgt_d, wgt_d)
     noise_d = 1/np.sqrt(wgt_d) + 1j * 1/np.sqrt(wgt_d) 
     q_v_zero = np.zeros(len(q))
-    d_data = np.append(vis_d.real, vis_d.imag)
+
+    ###
+    diag_mat_cos_inv = np.cos(2 * np.pi * (delta_x * u_d + delta_y * v_d))
+    diag_mat_sin_inv = np.sin(2 * np.pi * (delta_x * u_d + delta_y * v_d))
+    d_real = vis_d.real
+    d_imag = vis_d.imag
+    d_real_mod = d_real * diag_mat_cos_inv  - d_imag * diag_mat_sin_inv
+    d_imag_mod = +  d_real * diag_mat_sin_inv + d_imag * diag_mat_cos_inv
+    d_data = np.append(d_real_mod, d_imag_mod)
+
     return q, q_v_zero , vis_d, wgt_d, noise_d, sigma_d, d_data
 
 def deproject_radial_2d(u_d, v_d, vis_d, wgt_d, cosi, pa, delta_x, delta_y):
@@ -145,7 +154,14 @@ def deproject_radial_2d(u_d, v_d, vis_d, wgt_d, cosi, pa, delta_x, delta_y):
     wgt_d =  wgt_d/(cosi**2)
     sigma_d = np.append(wgt_d, wgt_d)
     noise_d = 1/np.sqrt(wgt_d) + 1j * 1/np.sqrt(wgt_d) 
-    d_data = np.append(vis_d.real, vis_d.imag)
+    diag_mat_cos_inv = np.cos(2 * np.pi * (delta_x * u_d + delta_y * v_d))
+    diag_mat_sin_inv = np.sin(2 * np.pi * (delta_x * u_d + delta_y * v_d))
+    d_real = vis_d.real
+    d_imag = vis_d.imag
+    d_real_mod = d_real * diag_mat_cos_inv  - d_imag * diag_mat_sin_inv
+    d_imag_mod = +  d_real * diag_mat_sin_inv + d_imag * diag_mat_cos_inv
+    d_data = np.append(d_real_mod, d_imag_mod)
+
     return u_new, v_new, vis_d, wgt_d, noise_d, sigma_d, d_data
 
 
