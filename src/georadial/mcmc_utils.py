@@ -30,7 +30,26 @@ def obs_model_comparison(I_model, u_d, v_d, theta, d_data, R_out, N, dpix):
     vis_model_imag = np.zeros(np.shape(vis_model))
     return H_mat, q_dist, d_real_mod, d_imag_mod, vis_model, vis_model_imag, u_new_d_before, v_new_d
 
-
+def make_model_and_residual(u_d, v_d, theta, I_model, vis_data, R_out, N, dpix):
+    cosi = theta[2]
+    pa = theta[3]
+    delta_x = theta[4] * ARCSEC_TO_RAD
+    delta_y = theta[5]* ARCSEC_TO_RAD
+    cos_pa = np.cos(pa)
+    sin_pa = np.sin(pa)
+    u_new_d_before = -cos_pa * u_d + sin_pa *v_d
+    v_new_d = -sin_pa * u_d - cos_pa *v_d
+    u_new_d = u_new_d_before * cosi
+    q_dist = (u_new_d**2 + v_new_d **2)**0.5 
+    diag_mat_cos = np.cos(2 * np.pi * (- delta_x * u_d - delta_y * v_d))
+    diag_mat_sin = np.sin(2 * np.pi * (- delta_x * u_d - delta_y * v_d))
+    H_mat = hankel.make_hankel_matrix(q_dist, R_out, N,  cosi)
+    vis_model = np.dot(H_mat, I_model) 
+    vis_model_real = diag_mat_cos * vis_model 
+    vis_model_imag = diag_mat_sin * vis_model 
+    vis_model = vis_model_real + 1j*vis_model_imag
+    residual = vis_data - vis_model 
+    return vis_model, residual 
 
 def make_prior_dic_for_mcmc(para_file):
 

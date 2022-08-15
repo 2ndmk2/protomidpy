@@ -145,7 +145,7 @@ def grid_search_evidence(u_d, v_d, vis_d, wgt_d, cov, nu_now, log10_alpha_arr, g
 
 
 def sample_mcmc_full(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, para_dic_for_prior, para_dic_for_mcmc, header_name_for_file = "test", out_dir = "./", nrad=300, dpix= 0.1 * ARCSEC_TO_RAD, 
-    n_bin_log=200,  q_min_max_bin = [1e3, 1e7], pa_assumed=0, cosi_assumed=0, delta_x_assumed =0, delta_y_assumed =0, file_for_prior = "", file_for_mcmc = "", pool =None):
+    n_bin_log=200,  q_min_max_bin = [1e3, 1e7], file_for_prior = "", file_for_mcmc = "", pool =None):
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -153,12 +153,11 @@ def sample_mcmc_full(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, pa
     coord_for_grid_lg, rep_positions_for_grid_lg, uu_for_grid_pos_lg, vv_for_grid_pos_lg = data_gridding.log_gridding_2d(q_min_max_bin[0], q_min_max_bin[1], n_bin_log)
     u_grid_2d, v_grid_2d, vis_grid_2d, noise_grid_2d, sigma_mat_2d, d_data,  binnumber = \
         data_gridding.data_binning_2d(u_d, v_d,vis_d, wgt_d, coord_for_grid_lg)
-
+    np.savez(gridfile, u = q_grid_1d_lg_data, v = np.zeros_like(q_grid_1d_lg_data), vis = vis_grid_1d_lg_data, noise = noise_grid_1d_lg_data)
     R_out = nrad* dpix 
-    other_thetas = [cosi_assumed,  pa_assumed, delta_x_assumed, delta_y_assumed, 0]
-    gridfile = os.path.join(out_dir, header_name_for_file+ "grid.npz")
+    gridfile = os.path.join(out_dir, header_name_for_file+ "_grid.npz")
     r_n, jn, qmax, q_n, H_mat_model, q_dist_2d_model, N_d, r_dist, d_A_minus1_d, logdet_for_sigma_d  = hankel.prepare(R_out, nrad,  d_data, sigma_mat_2d)
-    
+
     ## emcee
     initial_for_mcmc = mcmc_utils.make_initial_geo_offset(para_dic_for_mcmc, n_walker, cov = cov)
     n_w, n_para = np.shape(initial_for_mcmc)
@@ -175,6 +174,12 @@ def sample_mcmc_full(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, pa
     mcmc_plot = True
     if mcmc_plot:
         plotter.mcmc_plot(sample_out_name_npz, out_dir, header_name_for_file)
+
+def after_sampling(u, v, mcmc_para, nrad=300, dpix= 0.1 * ARCSEC_TO_RAD):
+    mcmc_result = np.load(mcmc_para)
+    sample = mcmc_result["sample"]
+    log_posterior = mcmc_result["log_prior"] + mcmc_result["log_likelihood"] 
+    sample_best = sample[:,np.argmax(log_posterior)]
 
 
 def main(cov_arr,  nu_arr, q_constrained_arr, nrad=30, dpix = None, MCMC_RUN=10000, NWALKER=32, \

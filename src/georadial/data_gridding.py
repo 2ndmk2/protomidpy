@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.stats import binned_statistic_2d
 from scipy.stats import binned_statistic
-
 import matplotlib.pyplot as plt
 import os
 from scipy import optimize
@@ -139,8 +138,9 @@ def deproject_radial(u_d, v_d, vis_d, wgt_d, cosi, pa, delta_x, delta_y):
     d_real_mod = d_real * diag_mat_cos_inv  - d_imag * diag_mat_sin_inv
     d_imag_mod = +  d_real * diag_mat_sin_inv + d_imag * diag_mat_cos_inv
     d_data = np.append(d_real_mod, d_imag_mod)
+    vis_d_new =d_real_mod  + 1j * d_imag_mod
 
-    return q, q_v_zero , vis_d, wgt_d, noise_d, sigma_d, d_data
+    return q, q_v_zero ,vis_d_new , wgt_d, noise_d, sigma_d, d_data
 
 def deproject_radial_2d(u_d, v_d, vis_d, wgt_d, cosi, pa, delta_x, delta_y):
 
@@ -158,8 +158,8 @@ def deproject_radial_2d(u_d, v_d, vis_d, wgt_d, cosi, pa, delta_x, delta_y):
     diag_mat_sin_inv = np.sin(2 * np.pi * (delta_x * u_d + delta_y * v_d))
     d_real = vis_d.real
     d_imag = vis_d.imag
-    d_real_mod = d_real * diag_mat_cos_inv  - d_imag * diag_mat_sin_inv
-    d_imag_mod = +  d_real * diag_mat_sin_inv + d_imag * diag_mat_cos_inv
+    d_real_mod = d_real * diag_mat_cos_inv  + d_imag * diag_mat_sin_inv
+    d_imag_mod = +  d_real * diag_mat_sin_inv - d_imag * diag_mat_cos_inv
     d_data = np.append(d_real_mod, d_imag_mod)
 
     return u_new, v_new, vis_d, wgt_d, noise_d, sigma_d, d_data

@@ -26,6 +26,26 @@ def make_vis_files(vis_folder, names):
     return files
 
 
+def load_original_uv(file_name):
+    """ Loading function for multi-freq data. This function deprojects visibility using 
+    assumed inclination and positiona angle. 
+    
+    Args:
+        file_name (str): file name for data
+        inc (float): inclination of object
+        pa (flaot): position angle of object
+    
+    Returns:
+        q_dist (ndarray): 1d array containing visibility distance in radial direction
+        vis_d_real (ndarray): 1d array contatining real part of visibility in radial direction
+        freq_d (ndarray): 1d array containig frequency 
+    """
+    data = np.load(file_name)
+    uvw = data["uvw_original"]
+    u = uvw[0,:]
+    v = uvw[1,:]
+    return u, v
+
 
 def load_obsdata(file_name):
     """ Loading function for multi-freq data. This function deprojects visibility using 
@@ -46,7 +66,8 @@ def load_obsdata(file_name):
     u_d = data["u_obs"]
     vis_d = data["vis_obs"]
     wgt_d = data["wgt_obs"]
-    return u_d, v_d, vis_d, wgt_d
+    freq_d = data["freq_obs"]
+    return u_d, v_d, vis_d, wgt_d, freq_d
 
 def q_max_determine(u_d, v_d):
     cosi_arr = np.linspace(0,1,21)
