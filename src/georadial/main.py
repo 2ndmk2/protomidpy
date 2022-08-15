@@ -168,7 +168,7 @@ def sample_mcmc_full(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, pa
     sampler.run_mcmc(initial_for_mcmc, n_chain, progress=True)
     samples = sampler.get_chain(flat=True)
     blobs = sampler.get_blobs()
-    np.savez(sample_out_name, sample = samples, log_prior =blobs["log_prior"], log_likelihood = blobs["log_likelihood"])
+    np.savez(np.path.join(out_dir, sample_out_name), sample = samples, log_prior =blobs["log_prior"], log_likelihood = blobs["log_likelihood"])
    
     ## corner plot
     mcmc_plot = True
