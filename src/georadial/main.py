@@ -153,9 +153,9 @@ def sample_mcmc_full(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, pa
     coord_for_grid_lg, rep_positions_for_grid_lg, uu_for_grid_pos_lg, vv_for_grid_pos_lg = data_gridding.log_gridding_2d(q_min_max_bin[0], q_min_max_bin[1], n_bin_log)
     u_grid_2d, v_grid_2d, vis_grid_2d, noise_grid_2d, sigma_mat_2d, d_data,  binnumber = \
         data_gridding.data_binning_2d(u_d, v_d,vis_d, wgt_d, coord_for_grid_lg)
-    np.savez(gridfile, u = q_grid_1d_lg_data, v = np.zeros_like(q_grid_1d_lg_data), vis = vis_grid_1d_lg_data, noise = noise_grid_1d_lg_data)
-    R_out = nrad* dpix 
     gridfile = os.path.join(out_dir, header_name_for_file+ "_grid.npz")
+    np.savez(gridfile, u = u_grid_2d, v = v_grid_2d, vis = vis_grid_2d, noise = noise_grid_2d)
+    R_out = nrad* dpix 
     r_n, jn, qmax, q_n, H_mat_model, q_dist_2d_model, N_d, r_dist, d_A_minus1_d, logdet_for_sigma_d  = hankel.prepare(R_out, nrad,  d_data, sigma_mat_2d)
 
     ## emcee
