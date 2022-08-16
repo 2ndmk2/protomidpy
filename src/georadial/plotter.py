@@ -30,7 +30,7 @@ def mcmc_plot(sample_out_name_npz, outdir, header_name_for_file,n_sample = 5000)
     sample= sample[pos_arg[len(pos_arg) - n_sample:]]
     print(np.shape(sample))
     n_chain = len(sample)
-    plot_out_name_npz = os.path.join(outdir, header_name_for_file +"_mcmc.pdf")
+    plot_out_name_npz = os.path.join(outdir, header_name_for_file +".pdf")
     corner.corner(sample)
     plt.tight_layout()
     plt.savefig(plot_out_name_npz, dpi=200)
