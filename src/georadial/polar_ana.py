@@ -12,8 +12,6 @@ import pickle
 from georadial import data_gridding
 
 
-
-
 def get_image(target_name, folder_image):
 
     image_file = os.path.join(folder_image,"image_%s.fits" % target_name )
@@ -67,47 +65,18 @@ def interpolate_image_ND(image, dx = 0.01, dy= 0.01):
     nx, ny = np.shape(image)
     x = make_coordinate(nx, dx)
     y = make_coordinate(ny, dy)
-    yy, xx = np.meshgrid(x, y)
-    f = LinearNDInterpolator(list(zip(np.ravel(yy), np.ravel(xx))), np.ravel(image))    
+    xx, yy = np.meshgrid(x, y)
+    xx = -xx
+    f = LinearNDInterpolator(list(zip(np.ravel(xx), np.ravel(yy))), np.ravel(image))    
     return f
 
-
-def make_interpolated_image(f, x_coord, y_coord, cosi, pa):
-    pa_rot = 0.5 * np.pi - pa
-    xx_new, yy_new = np.meshgrid(y_coord, x_coord)
-    xx2_new = xx_new
-    yy2_new = yy_new  * cosi
-    xx3_new = xx2_new * np.cos(pa_rot) + yy2_new * np.sin(pa_rot)
-    yy3_new =  -xx2_new * np.sin(pa_rot) + yy2_new * np.cos(pa_rot)
-    imsize = len(x_coord)
-    image_out = np.zeros((imsize, imsize))
-    for i in range(imsize):
-        for j in range(imsize):
-            image_out[i][j] = f(xx3_new[i,j], yy3_new[i,j] )
-    return image_out
-
-def make_interpolated_image_plus(f, x_coord, y_coord, cosi, pa):
-    pa_rot = 0.5 * np.pi - pa
-    xx_new, yy_new = np.meshgrid(y_coord, x_coord)
-    xx2_new = xx_new
-    yy2_new = yy_new  * cosi
-    xx3_new = xx2_new * np.cos(pa_rot) + yy2_new * np.sin(pa_rot)
-    yy3_new =  -xx2_new * np.sin(pa_rot) + yy2_new * np.cos(pa_rot)
-    imsize = len(x_coord)
-    image_out = np.zeros((imsize, imsize))
-
-    for i in range(imsize):
-        for j in range(imsize):
-            image_out[i][j] = f(xx3_new[i,j], yy3_new[i,j] )
-    return image_out, xx_new, yy_new
-
 def make_interpolated_image_plus_ND(f, x_coord, y_coord, cosi, pa):
-    pa_rot = 0.5 * np.pi - pa
-    xx_new, yy_new = np.meshgrid(y_coord, x_coord)
-    xx2_new = xx_new
-    yy2_new = yy_new  * cosi
-    xx3_new = xx2_new * np.cos(pa_rot) + yy2_new * np.sin(pa_rot)
-    yy3_new =  -xx2_new * np.sin(pa_rot) + yy2_new * np.cos(pa_rot)
+    xx_new, yy_new = np.meshgrid(x_coord, y_coord)
+    xx_new = - xx_new
+    xx2_new = xx_new   * cosi
+    yy2_new = yy_new 
+    xx3_new = xx2_new * np.cos(pa) + yy2_new * np.sin(pa)
+    yy3_new =  -xx2_new * np.sin(pa) + yy2_new * np.cos(pa)
     imsize = len(x_coord)
     image_out = f(xx3_new, yy3_new)#np.zeros((imsize, imsize))
 
@@ -126,13 +95,15 @@ def main_interpolated_image(pickle_name, pickle_name2, res, dx_original_image, x
     if not os.path.exists(pickle_name2):
         image_out, xx_new, yy_new = make_interpolated_image_plus_ND(int_f, x_coord, x_coord, cosi, pa)
         interpolator = LinearNDInterpolator(list(zip(np.ravel(xx_new), np.ravel(yy_new))), np.ravel(image_out))        
+
         with open(pickle_name2, "wb") as f:
             pickle.dump(interpolator, f)    
     else:
         with open(pickle_name2, "rb") as f:
             interpolator  = pickle.load(f)
+            image_out, xx_new, yy_new = make_interpolated_image_plus_ND(interpolator, x_coord, x_coord, 1, 0)
 
-    return interpolator
+    return interpolator, image_out
 
 def polar_max(r_arr, phi, interpolator):
     abs_val_arr= []
@@ -155,7 +126,7 @@ def integral_polar(r_arr, phi, m, delta_phi, interpolator):
         cosphi= np.cos(phi * m)
         sinphi= np.sin(phi * m)
         cos_value = np.sum(cosphi * z) * delta_phi
-        sin_value = np.sum(sinphi * z) * delta_phi
+        sin_value = - np.sum(sinphi * z) * delta_phi
         angle = np.arctan2(sin_value , cos_value)
         abs_value = (1/np.pi) * (cos_value**2 + sin_value**2)**0.5
         abs_val_arr.append(abs_value)
@@ -181,6 +152,8 @@ def integral_polar_shifted(r_arr, phi, m, delta_phi, dx, dy,  interpolator):
     abs_val_arr = np.array(abs_val_arr)
     angle_arr = np.array(angle_arr)
     return abs_val_arr, angle_arr
+
+
 
 
 def make_cirle(rad_arr, cen, color="r"):
@@ -215,14 +188,13 @@ def make_radial_profile_main(image, dx,  cosi, pa):
     """ Module or making radial profile for disks
     
     """
-    pa_rot = 0.5 * np.pi - pa
     nx, ny = np.shape(image)
     x_coord = make_coordinate(nx, dx)
     xx_new, yy_new = np.meshgrid(x_coord, x_coord)
-    xx2_new = xx_new * np.cos(pa_rot) - yy_new * np.sin(pa_rot)
-    yy2_new = +xx_new * np.sin(pa_rot) + yy_new * np.cos(pa_rot)    
-    xx3_new = xx2_new
-    yy3_new = yy2_new/ cosi
+    xx2_new = xx_new * np.cos(pa) - yy_new * np.sin(pa)
+    yy2_new = +xx_new * np.sin(pa) + yy_new * np.cos(pa)    
+    xx3_new = xx2_new / cosi
+    yy3_new = yy2_new
     rr_new = (xx3_new**2 + yy3_new**2 )**0.5
     image_1d = np.ravel(image)
     rr_1d = np.ravel(rr_new )
@@ -238,13 +210,12 @@ def make_radial_profile_target(target_name, image_folder, mcmc_folder, dx, rmax 
     image = get_image(target_name, image_folder)
     cosi, pa = get_pa_coi(target_name, mcmc_folder)
     nx, ny = np.shape(image)
-    pa_rot = 0.5 * np.pi - pa
     x_coord = make_coordinate(nx, dx)
     xx_new, yy_new = np.meshgrid(x_coord, x_coord)
-    xx2_new = xx_new * np.cos(pa_rot) - yy_new * np.sin(pa_rot)
-    yy2_new = +xx_new * np.sin(pa_rot) + yy_new * np.cos(pa_rot)    
-    xx3_new = xx2_new
-    yy3_new = yy2_new/ cosi
+    xx2_new = xx_new * np.cos(pa) - yy_new * np.sin(pa)
+    yy2_new = +xx_new * np.sin(pa) + yy_new * np.cos(pa)    
+    xx3_new = xx2_new / cosi
+    yy3_new = yy2_new
     rr_new = (xx3_new**2 + yy3_new**2 )**0.5
     image_1d = np.ravel(image)
     rr_1d = np.ravel(rr_new )
@@ -255,3 +226,34 @@ def make_radial_profile_target(target_name, image_folder, mcmc_folder, dx, rmax 
     r_max_interp, interp_f = make_interpolation_for_rad_profile(r_1d, flux_1d)
 
     return r_max_interp, interp_f 
+
+"""
+def make_interpolated_image(f, x_coord, y_coord, cosi, pa):
+    x_coord_inv = x_coord
+    xx_new, yy_new = np.meshgrid(y_coord, x_coord_inv)
+    xx2_new = xx_new * cosi
+    yy2_new = yy_new  
+    xx3_new = xx2_new * np.cos(pa) + yy2_new * np.sin(pa)
+    yy3_new =  -xx2_new * np.sin(pa) + yy2_new * np.cos(pa)
+    imsize = len(x_coord)
+    image_out = np.zeros((imsize, imsize))
+    for i in range(imsize):
+        for j in range(imsize):
+            image_out[i][j] = f(xx3_new[i,j], yy3_new[i,j] )
+    return image_out
+
+def make_interpolated_image_plus(f, x_coord, y_coord, cosi, pa):
+    x_coord_inv = x_coord
+    xx_new, yy_new = np.meshgrid(y_coord, x_coord_inv)
+    xx2_new = xx_new* cosi
+    yy2_new = yy_new  
+    xx3_new = xx2_new * np.cos(pa) + yy2_new * np.sin(pa)
+    yy3_new =  -xx2_new * np.sin(pa) + yy2_new * np.cos(pa)
+    imsize = len(x_coord)
+    image_out = np.zeros((imsize, imsize))
+
+    for i in range(imsize):
+        for j in range(imsize):
+            image_out[i][j] = f(xx3_new[i,j], yy3_new[i,j] )
+    return image_out, xx_new, yy_new
+"""
