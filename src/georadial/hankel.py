@@ -89,8 +89,8 @@ def make_hankel_wt_fixed_q(q_dist, R_out, N, factor_all, r_pos, dpix,q_max):
 def make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix,q_max):
     cos_pa = np.cos(pa)
     sin_pa = np.sin(pa)
-    u_new_d = -cos_pa * u_d + sin_pa *v_d
-    v_new_d = -sin_pa * u_d - cos_pa *v_d
+    u_new_d = cos_pa * u_d - sin_pa *v_d
+    v_new_d = sin_pa * u_d + cos_pa *v_d
     u_new_d = u_new_d * cosi
     q_dist = (u_new_d**2 + v_new_d **2)**0.5
     H_mat = make_hankel_matrix_from_kataware(q_dist,factor_all, r_pos, q_max, cosi)

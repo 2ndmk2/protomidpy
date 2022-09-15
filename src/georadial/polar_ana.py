@@ -144,7 +144,7 @@ def integral_polar_shifted(r_arr, phi, m, delta_phi, dx, dy,  interpolator):
         cosphi= np.cos(phi * m)
         sinphi= np.sin(phi * m)
         cos_value = np.sum(cosphi * z) * delta_phi 
-        sin_value = np.sum(sinphi * z) * delta_phi 
+        sin_value = -np.sum(sinphi * z) * delta_phi 
         angle = np.arctan2(sin_value , cos_value)
         abs_value = (1/np.pi) * (cos_value**2 + sin_value**2)**0.5
         abs_val_arr.append(abs_value)

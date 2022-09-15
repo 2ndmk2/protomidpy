@@ -142,6 +142,18 @@ def grid_search_evidence(u_d, v_d, vis_d, wgt_d, cov, nu_now, log10_alpha_arr, g
             term1_mat = term1_mat, term2_mat = term2_mat, term3_mat = term3_mat, log_alpha_arr =  log10_alpha_arr, gamma_arr = gamma_arc_arr)
 
 
+def data_binning(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, para_dic_for_prior, para_dic_for_mcmc, header_name_for_file = "test", out_dir = "./", nrad=300, dpix= 0.1 * ARCSEC_TO_RAD, 
+    n_bin_log=200,  q_min_max_bin = [1e3, 1e7], file_for_prior = "", file_for_mcmc = "", pool =None):
+
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    coord_for_grid_lg, rep_positions_for_grid_lg, uu_for_grid_pos_lg, vv_for_grid_pos_lg = data_gridding.log_gridding_2d(q_min_max_bin[0], q_min_max_bin[1], n_bin_log)
+    u_grid_2d, v_grid_2d, vis_grid_2d, noise_grid_2d, sigma_mat_2d, d_data,  binnumber = \
+        data_gridding.data_binning_2d(u_d, v_d,vis_d, wgt_d, coord_for_grid_lg)
+    gridfile = os.path.join(out_dir, header_name_for_file+ "_grid.npz")
+    np.savez(gridfile, u = u_grid_2d, v = v_grid_2d, vis = vis_grid_2d, noise = noise_grid_2d)
+  
 
 
 def sample_mcmc_full(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, para_dic_for_prior, para_dic_for_mcmc, header_name_for_file = "test", out_dir = "./", nrad=300, dpix= 0.1 * ARCSEC_TO_RAD, 
