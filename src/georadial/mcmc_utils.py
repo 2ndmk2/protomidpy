@@ -37,8 +37,8 @@ def make_model_and_residual(u_d, v_d, theta, I_model, vis_data, R_out, N, dpix):
     delta_y = theta[5]* ARCSEC_TO_RAD
     cos_pa = np.cos(pa)
     sin_pa = np.sin(pa)
-    u_new_d_before = -cos_pa * u_d + sin_pa *v_d
-    v_new_d = -sin_pa * u_d - cos_pa *v_d
+    u_new_d_before = cos_pa * u_d - sin_pa *v_d
+    v_new_d = sin_pa * u_d + cos_pa *v_d
     u_new_d = u_new_d_before * cosi
     q_dist = (u_new_d**2 + v_new_d **2)**0.5 
     diag_mat_cos = np.cos(2 * np.pi * (- delta_x * u_d - delta_y * v_d))
