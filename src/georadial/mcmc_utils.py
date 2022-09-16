@@ -8,7 +8,6 @@ def obs_model_comparison(I_model, u_d, v_d, theta, d_data, R_out, N, dpix):
     pa = theta[3]
     delta_x = theta[4] * ARCSEC_TO_RAD
     delta_y = theta[5]* ARCSEC_TO_RAD
-    I_0_input = 0
     cos_pa = np.cos(pa)
     sin_pa = np.sin(pa)
     u_new_d_before = -cos_pa * u_d + sin_pa *v_d
@@ -24,9 +23,8 @@ def obs_model_comparison(I_model, u_d, v_d, theta, d_data, R_out, N, dpix):
     d_imag = d_data[n_d:]
     d_real_mod = d_real * diag_mat_cos_inv  - d_imag * diag_mat_sin_inv
     d_imag_mod = + d_real * diag_mat_sin_inv + d_imag * diag_mat_cos_inv
-    d_real_for_point_source = I_0_input * np.ones(int(len(d_data)/2))
     H_mat = hankel.make_hankel_matrix(q_dist, R_out, N,  cosi)
-    vis_model = np.dot(H_mat, I_model) + d_real_for_point_source
+    vis_model = np.dot(H_mat, I_model) 
     vis_model_imag = np.zeros(np.shape(vis_model))
     return H_mat, q_dist, d_real_mod, d_imag_mod, vis_model, vis_model_imag, u_new_d_before, v_new_d
 
