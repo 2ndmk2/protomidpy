@@ -23,42 +23,18 @@ def get_image(target_name, folder_image):
     hdul.close()
     return image
 
-def get_image_and_res(target_name, folder_raw, folder_image):
-
-    subtracted_file = os.path.join(folder_image,"image_%s.fits" % target_name )
-    raw_file = os.path.join(folder_raw,"image_%s.fits" % target_name )
-    if not os.path.exists(subtracted_file):
-        return None, None
-    if not os.path.exists(raw_file):
-        return None, None
-
-    hdul = fits.open(subtracted_file)
-    hdul_raw = fits.open(raw_file)
-    image_subtracted = hdul[0].data[0][0]
-    image_raw =  hdul_raw[0].data[0][0]
-    hdul.close()
-    hdul_raw.close()
-    return image_raw, image_subtracted
-
 def make_coordinate(nx, dx):
     x = np.linspace(0, (nx-1)*dx, nx)  
     x -= np.mean(x)
     return x
 
-def get_pa_coi(target_name, folder):
+def get_pa_cosi(target_name, folder):
     mcmcfile = os.path.join(folder,"%s_continuum_averagedmodel.npz" % target_name )
     sample = np.load(mcmcfile)["sample_best"]        
     cosi = sample[2]
     pa = sample[3]#0.5 * np.pi - sample[3]# + 3 * np.pi/2
     return cosi, pa 
 
-def interpolate_image(image, dx = 0.01, dy= 0.01):
-    ## 
-    nx, ny = np.shape(image)
-    x = make_coordinate(nx, dx)
-    y = make_coordinate(ny, dy)
-    f = interpolate.interp2d(x, y, image, kind='cubic')
-    return f
 
 def interpolate_image_ND(image, dx = 0.01, dy= 0.01):
     ## 
@@ -70,7 +46,7 @@ def interpolate_image_ND(image, dx = 0.01, dy= 0.01):
     f = LinearNDInterpolator(list(zip(np.ravel(xx), np.ravel(yy))), np.ravel(image))    
     return f
 
-def make_interpolated_image_plus_ND(f, x_coord, y_coord, cosi, pa):
+def make_interpolated_deprojected_image(f, x_coord, y_coord, cosi, pa):
     xx_new, yy_new = np.meshgrid(x_coord, y_coord)
     xx_new = - xx_new
     xx2_new = xx_new   * cosi
@@ -93,7 +69,7 @@ def main_interpolated_image(pickle_name, pickle_name2, res, dx_original_image, x
         with open(pickle_name, "rb") as f:
             int_f  = pickle.load(f)
     if not os.path.exists(pickle_name2):
-        image_out, xx_new, yy_new = make_interpolated_image_plus_ND(int_f, x_coord, x_coord, cosi, pa)
+        image_out, xx_new, yy_new = make_interpolated_deprojected_image(int_f, x_coord, x_coord, cosi, pa)
         interpolator = LinearNDInterpolator(list(zip(np.ravel(xx_new), np.ravel(yy_new))), np.ravel(image_out))        
 
         with open(pickle_name2, "wb") as f:
@@ -101,7 +77,7 @@ def main_interpolated_image(pickle_name, pickle_name2, res, dx_original_image, x
     else:
         with open(pickle_name2, "rb") as f:
             interpolator  = pickle.load(f)
-            image_out, xx_new, yy_new = make_interpolated_image_plus_ND(interpolator, x_coord, x_coord, 1, 0)
+            image_out, xx_new, yy_new = make_interpolated_deprojected_image(interpolator, x_coord, x_coord, 1, 0)
 
     return interpolator, image_out
 
@@ -155,7 +131,6 @@ def integral_polar_shifted(r_arr, phi, m, delta_phi, dx, dy,  interpolator):
 
 
 
-
 def make_cirle(rad_arr, cen, color="r"):
     circle_arr = []
     for rad in rad_arr:
@@ -203,12 +178,11 @@ def make_radial_profile_main(image, dx,  cosi, pa):
 
 def make_radial_profile_target(target_name, image_folder, mcmc_folder, dx, rmax = 2, n_d_log = 200):
     """ Make radial profile for target with name=target_name
-
     
     """
 
     image = get_image(target_name, image_folder)
-    cosi, pa = get_pa_coi(target_name, mcmc_folder)
+    cosi, pa = get_pa_cosi(target_name, mcmc_folder)
     nx, ny = np.shape(image)
     x_coord = make_coordinate(nx, dx)
     xx_new, yy_new = np.meshgrid(x_coord, x_coord)
@@ -227,33 +201,233 @@ def make_radial_profile_target(target_name, image_folder, mcmc_folder, dx, rmax 
 
     return r_max_interp, interp_f 
 
-"""
-def make_interpolated_image(f, x_coord, y_coord, cosi, pa):
-    x_coord_inv = x_coord
-    xx_new, yy_new = np.meshgrid(y_coord, x_coord_inv)
-    xx2_new = xx_new * cosi
-    yy2_new = yy_new  
-    xx3_new = xx2_new * np.cos(pa) + yy2_new * np.sin(pa)
-    yy3_new =  -xx2_new * np.sin(pa) + yy2_new * np.cos(pa)
-    imsize = len(x_coord)
-    image_out = np.zeros((imsize, imsize))
-    for i in range(imsize):
-        for j in range(imsize):
-            image_out[i][j] = f(xx3_new[i,j], yy3_new[i,j] )
-    return image_out
 
-def make_interpolated_image_plus(f, x_coord, y_coord, cosi, pa):
-    x_coord_inv = x_coord
-    xx_new, yy_new = np.meshgrid(y_coord, x_coord_inv)
-    xx2_new = xx_new* cosi
-    yy2_new = yy_new  
-    xx3_new = xx2_new * np.cos(pa) + yy2_new * np.sin(pa)
-    yy3_new =  -xx2_new * np.sin(pa) + yy2_new * np.cos(pa)
-    imsize = len(x_coord)
-    image_out = np.zeros((imsize, imsize))
+def get_raw_and_res(target_name, folder_raw, folder_res):
+    """
+    Obtain image & residual from folderes
 
-    for i in range(imsize):
-        for j in range(imsize):
-            image_out[i][j] = f(xx3_new[i,j], yy3_new[i,j] )
-    return image_out, xx_new, yy_new
-"""
+    Params:
+        target_name: target_name for target
+        folder_raw: folder for image (os.path.join(folder_res,"image_%s.fits" % target_name )
+        folder_res: folder for residual (os.path.join(folder_raw,"image_%s.fits" % target_name )
+
+    Return:
+        image_raw: 2d array for image 
+        image_subtracted: 2d array for residual
+    """
+
+    raw_file = os.path.join(folder_raw,"image_%s.fits" % target_name )
+    subtracted_file = os.path.join(folder_res,"image_%s.fits" % target_name )
+    if not os.path.exists(subtracted_file):
+        return None, None
+    if not os.path.exists(raw_file):
+        return None, None
+
+    hdul = fits.open(subtracted_file)
+    hdul_raw = fits.open(raw_file)
+    image_subtracted = hdul[0].data[0][0]
+    image_raw =  hdul_raw[0].data[0][0]
+    hdul.close()
+    hdul_raw.close()
+    return image_raw, image_subtracted
+
+
+def make_deprojected_image(target_name,folder_mcmc,pickle_name_before_deprojected, pickle_name_deprojected,  res, dx_image, pix_interp, dx_interp ):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_mcmc: folder containing mcmc result
+        pickle_name_before_deprojected: pickle file for (residual) image
+        pickle_name_deprojected: pickle file  for deprojected (residual) image
+        res: residual image (N * N)
+        dx_image: pixel scale for image
+        pix_interp: number of pixels for interpolated deprojected image (pix_interp * pix_interp)
+        dx_interp: angular size of one pixel for interpolated deprojected image
+    Return:
+        interpolator: Interpolating function for images ( f(x,y))
+        image_out: Interpolated imagme (N*N)
+
+    """
+
+    x_coord = make_coordinate(pix_interp, dx_interp)
+    cosi, pa = get_pa_cosi(target_name,folder_mcmc)
+    interpolator, image_out = main_interpolated_image(pickle_name_before_deprojected, pickle_name_deprojected, res, dx_image, x_coord, cosi, pa)
+
+    return interpolator, image_out
+
+
+def plotter_2_2_image(target_name, folder_raw, folder_res, folder_mcmc, folder_fig, pickle_name_before_deprojected, pickle_name_deprojected, \
+     max_std_lw, max_std_up, pix_interp = 500, dx_interp = 0.01, rad_circle_arr = [0.25, 0.50, 1, 1.5], cen_circle =0, \
+        dx_image = 0.006, cen = 0, plot_pix_image_scale = 1, plot_pix_image_scale_for_zoom = 0.5, cmap = "jet"):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_raw: folder for image (os.path.join(folder_res,"image_%s.fits" % target_name )
+        folder_res: folder for residual (os.path.join(folder_raw,"image_%s.fits" % target_name )
+        folder_mcmc: folder containing mcmc result
+        folder_fig: folder for output fig
+        pickle_name_before_deprojected: pickle file for (residual) image
+        pickle_name_deprojected: pickle file  for deprojected (residual) image
+        max_std_lw, max_std_up: lower, upper bounds for plots 
+        pix_interp: number of pixels for interpolated deprojected image (pix_interp * pix_interp)
+        dx_interp: angular size of one pixel for interpolated deprojected image
+        rad_circle_arr: radii for circles plotted for reference
+        cen_circle: center of circle
+        dx_image: pixel scale for image
+        cen: central coordinate of image
+        plot_pix_image_scale: scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+        plot_pix_image_scale_for_zoom: zooming scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+    Return:
+        None
+    """
+
+    ## Preparation
+    image, res = get_raw_and_res(target_name, folder_raw, folder_res)
+    if image is None:
+        return None, None
+
+    r_max_interp, interp_f = make_radial_profile_target(target_name, folder_raw, folder_mcmc, dx_image)
+    plot_pix_image = plot_pix_image_scale * r_max_interp
+    plot_pix_image_zoom =plot_pix_image_scale_for_zoom  * r_max_interp
+    interp_ext = dx_interp * pix_interp * 0.5
+    extent_for_deprojected=[interp_ext,-interp_ext,interp_ext,-interp_ext]
+    nx, ny = np.shape(image)
+    d_extent = dx_image * (nx/2)
+    extent=[d_extent,-d_extent,+d_extent,-d_extent]
+    std = np.std(res)
+
+    interpolator, image_out = make_deprojected_image(target_name,folder_mcmc,pickle_name_before_deprojected, \
+        pickle_name_deprojected, res, dx_image, pix_interp, dx_interp)
+
+
+
+    ## Plot
+    fig, axs = plt.subplots(2, 2, figsize=(20, 20))
+    z0 = axs[0,0].imshow(image**0.5, extent = extent, cmap = "jet")#, vmin = -10, vmax=10)
+    axs[0,0].scatter(cen, cen, s = 10, color="k")
+    #_cs2 = axs[0,0].contour(res, levels=[-max_std_lw * std, max_std_up * std], colors=["b","r"], alpha = 0.5)
+    divider = make_axes_locatable(axs[0,0])
+    cax = divider.append_axes("right", size="5%", pad=0.1)
+    plt.colorbar(z0,cax=cax)    
+    axs[0,0].set_xlim(cen+plot_pix_image, cen-plot_pix_image)
+    axs[0,0].set_ylim(cen-plot_pix_image, cen+plot_pix_image)    
+    axs[0,0].set_title(" Image (%s)" % target_name)    
+    axs[0,1].set_xlim(cen+plot_pix_image, cen-plot_pix_image)
+    axs[0,1].set_ylim(cen-plot_pix_image, cen+plot_pix_image)
+    axs[0,1].set_title("Residual (%s)" % target_name)    
+    z1 = axs[0,1].imshow(res, vmin = -max_std_lw * std, vmax=max_std_up* std, extent = extent, cmap = cmap)
+    axs[0,1].scatter(cen, cen, s = 10, color="r")
+    divider = make_axes_locatable(axs[0,1])
+    cax = divider.append_axes("right", size="5%", pad=0.1)
+    plt.colorbar(z1,cax=cax)
+    divider0 = make_axes_locatable(axs[1,0])
+    divider1 = make_axes_locatable(axs[1,1])  
+    axs[1,0].set_title("Deprojected Residual")    
+    axs[1,1].set_title("Deprojected Residual (zoom)")    
+
+    circle_arr = make_cirle(rad_circle_arr , cen_circle )
+    axs[1,0].set_xlim(cen_circle +plot_pix_image, cen_circle -plot_pix_image)
+    axs[1,0].set_ylim(cen_circle-plot_pix_image, cen_circle +plot_pix_image)
+    axs[1,0].scatter(cen_circle, cen_circle, s = 10, color="r")
+    z0 = axs[1,0].imshow(image_out, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap = cmap)
+    for circle_now in circle_arr:
+        axs[1,0].add_patch(circle_now) 
+    cax0 = divider0.append_axes("right", size="5%", pad=0.1)
+    plt.colorbar(z0,cax=cax0)
+    
+    circle_arr = make_cirle(rad_circle_arr , cen_circle)
+    axs[1,1].set_xlim(cen_circle+plot_pix_image_zoom, cen_circle-plot_pix_image_zoom)
+    axs[1,1].set_ylim(cen_circle-plot_pix_image_zoom, cen_circle+plot_pix_image_zoom)
+    axs[1,1].scatter(cen_circle, cen_circle, s = 10, color="r")
+
+    for circle_now in circle_arr:
+        axs[1,1].add_patch(circle_now)
+    z1 = axs[1,1].imshow(image_out, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap = cmap)
+    cax1 = divider1.append_axes("right", size="5%", pad=0.1)    
+    plt.colorbar(z1,cax=cax1)
+    plt.savefig(os.path.join(folder_fig, "%s.pdf" % target_name), 
+               bbox_inches='tight')    
+    plt.show()
+
+    return None
+
+def make_arr_pickle_names(target_name, pickle_folders):
+    pickle_name_before_deprojected_arr = []
+    pickle_name_deprojected_arr = []
+
+    for pickle_folder in pickle_folders:
+        
+        pickle_name = os.path.join(pickle_folder,"%s_res_int.pickle" % target_name)
+        pickle_name_deproject = os.path.join(pickle_folder,"%s_res_int_deproject.pickle" % target_name)
+        pickle_name_before_deprojected_arr.append(pickle_name)
+        pickle_name_deprojected_arr.append(pickle_name_deproject)
+
+    return pickle_name_before_deprojected_arr, pickle_name_deprojected_arr
+
+def plotter_res_real_imag(target_name, folder_raw, folder_res, folder_mcmc, folder_fig, pickle_name_before_deprojected_arr, pickle_name_deprojected_arr, \
+     max_std_lw, max_std_up, pix_interp = 500, dx_interp = 0.01, rad_circle_arr = [0.25, 0.50, 1, 1.5], cen_circle =0, \
+        dx_image = 0.006, cen = 0, plot_pix_image_scale = 1, plot_pix_image_scale_for_zoom = 0.5):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_raw: folder for image (os.path.join(folder_res,"image_%s.fits" % target_name )
+        folder_res: folder for residual (os.path.join(folder_raw,"image_%s.fits" % target_name )
+        folder_mcmc: folder containing mcmc result
+        folder_fig: folder for output fig
+        pickle_name_before_deprojected: pickle file for (residual) image
+        pickle_name_deprojected: pickle file  for deprojected (residual) image
+        max_std_lw, max_std_up: lower, upper bounds for plots 
+        pix_interp: number of pixels for interpolated deprojected image (pix_interp * pix_interp)
+        dx_interp: angular size of one pixel for interpolated deprojected image
+        rad_circle_arr: radii for circles plotted for reference
+        cen_circle: center of circle
+        dx_image: pixel scale for image
+        cen: central coordinate of image
+        plot_pix_image_scale: scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+        plot_pix_image_scale_for_zoom: zooming scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+    Return:
+        None
+    """
+
+    ## Preparation
+    image, res = get_raw_and_res(target_name, folder_raw, folder_res)
+    if image is None:
+        return None, None
+    r_max_interp, interp_f = make_radial_profile_target(target_name, folder_raw, folder_mcmc, dx_image)
+    plot_pix_image = plot_pix_image_scale * r_max_interp
+    plot_pix_image_zoom =plot_pix_image_scale_for_zoom  * r_max_interp
+    interp_ext = dx_interp * pix_interp * 0.5
+    extent_for_deprojected=[interp_ext,-interp_ext,interp_ext,-interp_ext]
+    nx, ny = np.shape(image)
+    d_extent = dx_image * (nx/2)
+    extent=[d_extent,-d_extent,+d_extent,-d_extent]
+
+    ## Plot
+    fig, axs = plt.subplots(1, len(pickle_name_before_deprojected_arr), figsize=(20, 20))
+    for i in range(len(pickle_name_before_deprojected_arr)):
+        ax_now = axs[i]
+        divider1 = make_axes_locatable(ax_now)  
+        interpolator, image_out = make_deprojected_image(target_name,folder_mcmc,pickle_name_before_deprojected_arr[i], \
+            pickle_name_deprojected_arr[i], None, dx_image, pix_interp, dx_interp)
+        std = np.std(res)
+        circle_arr = make_cirle(rad_circle_arr , cen_circle)
+        ax_now.set_xlim(cen_circle+plot_pix_image, cen_circle-plot_pix_image)
+        ax_now.set_ylim(cen_circle-plot_pix_image, cen_circle+plot_pix_image)
+        ax_now.scatter(cen_circle, cen_circle, s = 10, color="r")
+        for circle_now in circle_arr:
+            ax_now.add_patch(circle_now)
+        z1 = ax_now.imshow(image_out, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap = "inferno")
+        cax1 = divider1.append_axes("right", size="5%", pad=0.1)    
+        plt.colorbar(z1,cax=cax1)
+
+    plt.savefig(os.path.join(folder_fig, "%s.pdf" % target_name), 
+               bbox_inches='tight')    
+    plt.show()
+    return None
+

@@ -121,3 +121,4 @@ def plotter_evidence(evidence_mat, term1_mat,term2_mat, term3_mat, out_dir, head
     plt.savefig("./%s/%s_evidence.png" % (out_dir, head_name))
     plt.close()
     #plt.show()
+
