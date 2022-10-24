@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import os
 from scipy import optimize
 
+from georadial.covariance import ARCSEC_TO_RAD
+
 
 
 def log_gridding_1d(xmin, xmax, n_d_log):
@@ -119,10 +121,10 @@ def data_binning_2d(x1, x2, y, weights, grid):
 
 def deproject_radial(u_d, v_d, vis_d, wgt_d, cosi, pa, delta_x, delta_y):
 
+    delta_x_rad  = delta_x * ARCSEC_TO_RAD
+    delta_y_rad  = delta_y * ARCSEC_TO_RAD
     cos_pa = np.cos(pa)
     sin_pa = np.sin(pa)
-    vis_real = vis_d.real
-    vis_imag = vis_d.imag
     q = ((cosi **2) * (-u_d* cos_pa + v_d * sin_pa)**2+ (- u_d * sin_pa - v_d *cos_pa)**2)**0.5
     vis_d = vis_d/cosi
     wgt_d =  wgt_d/(cosi**2)
@@ -131,8 +133,8 @@ def deproject_radial(u_d, v_d, vis_d, wgt_d, cosi, pa, delta_x, delta_y):
     q_v_zero = np.zeros(len(q))
 
     ###
-    diag_mat_cos_inv = np.cos(2 * np.pi * (delta_x * u_d + delta_y * v_d))
-    diag_mat_sin_inv = np.sin(2 * np.pi * (delta_x * u_d + delta_y * v_d))
+    diag_mat_cos_inv = np.cos(2 * np.pi * (delta_x_rad * u_d + delta_y_rad * v_d))
+    diag_mat_sin_inv = np.sin(2 * np.pi * (delta_x_rad * u_d + delta_y_rad * v_d))
     d_real = vis_d.real
     d_imag = vis_d.imag
     d_real_mod = d_real * diag_mat_cos_inv  - d_imag * diag_mat_sin_inv

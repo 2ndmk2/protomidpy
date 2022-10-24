@@ -68,6 +68,7 @@ def main_interpolated_image(pickle_name, pickle_name2, res, dx_original_image, x
     else:
         with open(pickle_name, "rb") as f:
             int_f  = pickle.load(f)
+
     if not os.path.exists(pickle_name2):
         image_out, xx_new, yy_new = make_interpolated_deprojected_image(int_f, x_coord, x_coord, cosi, pa)
         interpolator = LinearNDInterpolator(list(zip(np.ravel(xx_new), np.ravel(yy_new))), np.ravel(image_out))        
@@ -130,11 +131,10 @@ def integral_polar_shifted(r_arr, phi, m, delta_phi, dx, dy,  interpolator):
     return abs_val_arr, angle_arr
 
 
-
-def make_cirle(rad_arr, cen, color="r"):
+def make_cirle(rad_arr, cen, color="r", linestyle ="-", lw = 2, alpha = 0.5):
     circle_arr = []
     for rad in rad_arr:
-        circle = plt.Circle((cen, cen), rad, fill=False, color= color)
+        circle = plt.Circle((cen, cen), rad, fill=False, color= color, linestyle  = linestyle, lw = lw,  alpha = alpha )
         circle_arr.append(circle)
     return circle_arr
 
@@ -370,7 +370,7 @@ def make_arr_pickle_names(target_name, pickle_folders):
 
 def plotter_res_real_imag(target_name, folder_raw, folder_res, folder_mcmc, folder_fig, pickle_name_before_deprojected_arr, pickle_name_deprojected_arr, \
      max_std_lw, max_std_up, pix_interp = 500, dx_interp = 0.01, rad_circle_arr = [0.25, 0.50, 1, 1.5], cen_circle =0, \
-        dx_image = 0.006, cen = 0, plot_pix_image_scale = 1, plot_pix_image_scale_for_zoom = 0.5):
+        dx_image = 0.006, cen = 0, plot_pix_image_scale = 1, plot_pix_image_scale_for_zoom = 0.5, cmap = "jet"):
     """
     Plotting image, residual, deprojected residual, & zoom deprojected residual. 
 
@@ -422,7 +422,7 @@ def plotter_res_real_imag(target_name, folder_raw, folder_res, folder_mcmc, fold
         ax_now.scatter(cen_circle, cen_circle, s = 10, color="r")
         for circle_now in circle_arr:
             ax_now.add_patch(circle_now)
-        z1 = ax_now.imshow(image_out, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap = "inferno")
+        z1 = ax_now.imshow(image_out, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap =  cmap )
         cax1 = divider1.append_axes("right", size="5%", pad=0.1)    
         plt.colorbar(z1,cax=cax1)
 
@@ -431,3 +431,305 @@ def plotter_res_real_imag(target_name, folder_raw, folder_res, folder_mcmc, fold
     plt.show()
     return None
 
+def plotter_2d_array(target_name, folder_raw, folder_res, folder_mcmc, folder_fig, pickle_name_before_deprojected_arr, pickle_name_deprojected_arr, \
+     max_std_lw, max_std_up, pix_interp = 500, dx_interp = 0.01, rad_circle_arr = [0.25, 0.50, 1, 1.5], cen_circle =0, \
+        dx_image = 0.006, cen = 0, plot_pix_image_scale = 1, plot_pix_image_scale_for_zoom = 0.5, nx_image = 2, ny_image = 2, cmap = "jet"):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_raw: folder for image (os.path.join(folder_res,"image_%s.fits" % target_name )
+        folder_res: folder for residual (os.path.join(folder_raw,"image_%s.fits" % target_name )
+        folder_mcmc: folder containing mcmc result
+        folder_fig: folder for output fig
+        pickle_name_before_deprojected: pickle file for (residual) image
+        pickle_name_deprojected: pickle file  for deprojected (residual) image
+        max_std_lw, max_std_up: lower, upper bounds for plots 
+        pix_interp: number of pixels for interpolated deprojected image (pix_interp * pix_interp)
+        dx_interp: angular size of one pixel for interpolated deprojected image
+        rad_circle_arr: radii for circles plotted for reference
+        cen_circle: center of circle
+        dx_image: pixel scale for image
+        cen: central coordinate of image
+        plot_pix_image_scale: scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+        plot_pix_image_scale_for_zoom: zooming scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+    Return:
+        None
+    """
+
+    ## Preparation
+    image, res = get_raw_and_res(target_name, folder_raw, folder_res)
+    if image is None:
+        return None, None
+    r_max_interp, interp_f = make_radial_profile_target(target_name, folder_raw, folder_mcmc, dx_image)
+    plot_pix_image = plot_pix_image_scale * r_max_interp
+    plot_pix_image_zoom =plot_pix_image_scale_for_zoom  * r_max_interp
+    interp_ext = dx_interp * pix_interp * 0.5
+    extent_for_deprojected=[interp_ext,-interp_ext,interp_ext,-interp_ext]
+    extent_for_deprojected_cont=[interp_ext,-interp_ext,-interp_ext,+interp_ext]
+    nx, ny = np.shape(image)
+    d_extent = dx_image * (nx/2)
+    extent=[d_extent,-d_extent,+d_extent,-d_extent]
+    ## Plot
+    fig, axs = plt.subplots( nx_image,  ny_image, figsize=(20, 20))
+    for i in range( nx_image):
+        for j in range( ny_image):
+            num_now = i  + j* nx_image
+            if num_now == len(pickle_name_deprojected_arr):
+                break
+            ax_now = axs[i, j]
+            divider1 = make_axes_locatable(ax_now)  
+            interpolator, image_out = make_deprojected_image(target_name,folder_mcmc,pickle_name_before_deprojected_arr[num_now], \
+                pickle_name_deprojected_arr[num_now], None, dx_image, pix_interp, dx_interp)
+            std = np.std(res)
+            circle_arr = make_cirle(rad_circle_arr , cen_circle)
+            ax_now.set_xlim(cen_circle+plot_pix_image, cen_circle-plot_pix_image)
+            ax_now.set_ylim(cen_circle-plot_pix_image, cen_circle+plot_pix_image)
+            #ax_now.scatter(cen_circle, cen_circle, s = 10, color="r")
+            #for circle_now in circle_arr:
+            #    ax_now.add_patch(circle_now)
+            #z2 =ax_now.contour(image_out, levels = [-2 * std , 2 * std], colors=["w","k"], extent = extent_for_deprojected_cont  )
+            z1 = ax_now.imshow(image_out, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap =  cmap )
+            cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+            plt.colorbar(z1,cax=cax1)
+
+    plt.savefig(os.path.join(folder_fig, "%s.pdf" % target_name), 
+               bbox_inches='tight')    
+    plt.show()
+    return None
+
+def plotter_basic(target_name, folder_raw, folder_res, folder_mcmc, folder_fig, pickle_name_before_deprojected, pickle_name_deprojected, \
+     max_std_lw, max_std_up, pix_interp = 500, dx_interp = 0.01, r_arr_angle= None, angle_arr = None, rad_circle_dark_arr =  None, rad_circle_bright_arr = None, cen_circle =0, \
+        dx_image = 0.006, cen = 0, plot_pix_image_scale = 1, plot_pix_image_scale_for_zoom = 0.5, title = "", cmap = "jet"):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_raw: folder for image (os.path.join(folder_res,"image_%s.fits" % target_name )
+        folder_res: folder for residual (os.path.join(folder_raw,"image_%s.fits" % target_name )
+        folder_mcmc: folder containing mcmc result
+        folder_fig: folder for output fig
+        pickle_name_before_deprojected: pickle file for (residual) image
+        pickle_name_deprojected: pickle file  for deprojected (residual) image
+        max_std_lw, max_std_up: lower, upper bounds for plots 
+        pix_interp: number of pixels for interpolated deprojected image (pix_interp * pix_interp)
+        dx_interp: angular size of one pixel for interpolated deprojected image
+        rad_circle_dark_arr: radii for dark regions plotted for reference
+        rad_circle_bright_arr: radii for bright regions plotted for reference
+        cen_circle: center of circle
+        dx_image: pixel scale for image
+        cen: central coordinate of image
+        plot_pix_image_scale: scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+        plot_pix_image_scale_for_zoom: zooming scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+    Return:
+        None
+    """
+
+    ## Preparation
+    image, res = get_raw_and_res(target_name, folder_raw, folder_res)
+    if image is None:
+        return None, None
+    r_max_interp, interp_f = make_radial_profile_target(target_name, folder_raw, folder_mcmc, dx_image)
+    plot_pix_image = plot_pix_image_scale * r_max_interp
+    plot_pix_image_zoom =plot_pix_image_scale_for_zoom  * r_max_interp
+    interp_ext = dx_interp * pix_interp * 0.5
+    extent_for_deprojected=[interp_ext,-interp_ext,interp_ext,-interp_ext]
+    extent_for_deprojected_cont=[interp_ext,-interp_ext,-interp_ext,+interp_ext]
+    nx, ny = np.shape(image)
+    d_extent = dx_image * (nx/2)
+    extent=[d_extent,-d_extent,+d_extent,-d_extent]
+    ## Plot
+    fig, axs = plt.subplots(figsize=(10 , 10 ))
+    ax_now = axs
+    divider1 = make_axes_locatable(ax_now)  
+    interpolator, image_out = make_deprojected_image(target_name,folder_mcmc,pickle_name_before_deprojected, \
+        pickle_name_deprojected, None, dx_image, pix_interp, dx_interp)
+    std = np.std(res)
+    #print(std)
+    ax_now.set_xlim(cen_circle+plot_pix_image, cen_circle-plot_pix_image)
+    ax_now.set_ylim(cen_circle-plot_pix_image, cen_circle+plot_pix_image)
+    ax_now.set_xlabel("$\Delta$ x [arcsec]")
+    ax_now.set_ylabel("$\Delta$ y [arcsec]")
+
+    if rad_circle_dark_arr is not None:
+        circle_arr = make_cirle(rad_circle_dark_arr , cen_circle, color="g", linestyle ="dashed", lw = 3, alpha = 0.75)
+        for circle in circle_arr:
+            ax_now.add_patch(circle)
+
+    if rad_circle_bright_arr is not None:
+        circle_arr = make_cirle(rad_circle_bright_arr , cen_circle, color="k", linestyle ="dashed", lw = 3, alpha = 0.75)
+        for circle in circle_arr:
+            ax_now.add_patch(circle)
+
+    ax_now.set_title(title)
+    z1 = ax_now.imshow(image_out, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap =  cmap )
+    cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+    cbar = plt.colorbar(z1,cax=cax1, ticks=[-max_std_lw * std , 0, max_std_up* std], label = "residual S/N")
+    cbar.ax.set_yticklabels(["-%d" % max_std_lw, '0', "%d" % max_std_up]) 
+
+    if r_arr_angle is not None:
+        x = r_arr_angle * np.cos(angle_arr)
+        y = -r_arr_angle * np.sin(angle_arr)
+        ax_now.scatter(x, y, color ="tab:blue", alpha = 0.8)
+        ax_now.scatter(-x, -y, color ="tab:blue", alpha = 0.8)
+
+    plt.savefig(os.path.join(folder_fig, "spiral_detail_%s.pdf" % target_name), 
+               bbox_inches='tight')    
+    plt.show()
+    return None
+
+
+def plotter_1d_array(target_name, folder_raw, folder_res, folder_mcmc, folder_fig, pickle_name_before_deprojected_arr, pickle_name_deprojected_arr, \
+     max_std_lw, max_std_up, pix_interp = 500, dx_interp = 0.01, rad_circle_arr = [0.25, 0.50, 1, 1.5], cen_circle =0, \
+        dx_image = 0.006, cen = 0, plot_pix_image_scale = 1, plot_pix_image_scale_for_zoom = 0.5, titles = [""], nx_image = 2, ny_image = 2, cmap = "jet"):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_raw: folder for image (os.path.join(folder_res,"image_%s.fits" % target_name )
+        folder_res: folder for residual (os.path.join(folder_raw,"image_%s.fits" % target_name )
+        folder_mcmc: folder containing mcmc result
+        folder_fig: folder for output fig
+        pickle_name_before_deprojected: pickle file for (residual) image
+        pickle_name_deprojected: pickle file  for deprojected (residual) image
+        max_std_lw, max_std_up: lower, upper bounds for plots 
+        pix_interp: number of pixels for interpolated deprojected image (pix_interp * pix_interp)
+        dx_interp: angular size of one pixel for interpolated deprojected image
+        rad_circle_arr: radii for circles plotted for reference
+        cen_circle: center of circle
+        dx_image: pixel scale for image
+        cen: central coordinate of image
+        plot_pix_image_scale: scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+        plot_pix_image_scale_for_zoom: zooming scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+    Return:
+        None
+    """
+
+    ## Preparation
+    image, res = get_raw_and_res(target_name, folder_raw, folder_res)
+    if image is None:
+        return None, None
+    r_max_interp, interp_f = make_radial_profile_target(target_name, folder_raw, folder_mcmc, dx_image)
+    plot_pix_image = plot_pix_image_scale * r_max_interp
+    plot_pix_image_zoom =plot_pix_image_scale_for_zoom  * r_max_interp
+    interp_ext = dx_interp * pix_interp * 0.5
+    extent_for_deprojected=[interp_ext,-interp_ext,interp_ext,-interp_ext]
+    extent_for_deprojected_cont=[interp_ext,-interp_ext,-interp_ext,+interp_ext]
+    nx, ny = np.shape(image)
+    d_extent = dx_image * (nx/2)
+    extent=[d_extent,-d_extent,+d_extent,-d_extent]
+    ## Plot
+    fig, axs = plt.subplots(nx_image, ny_image, figsize=(10 * ny_image, 10 * nx_image))
+    for num_now in range(np.max([nx_image,ny_image])):
+        ax_now = axs[num_now]
+        divider1 = make_axes_locatable(ax_now)  
+        interpolator, image_out = make_deprojected_image(target_name,folder_mcmc,pickle_name_before_deprojected_arr[num_now], \
+            pickle_name_deprojected_arr[num_now], None, dx_image, pix_interp, dx_interp)
+        std = np.std(res)
+        #print(std)
+        circle_arr = make_cirle(rad_circle_arr , cen_circle)
+        ax_now.set_xlim(cen_circle+plot_pix_image, cen_circle-plot_pix_image)
+        ax_now.set_ylim(cen_circle-plot_pix_image, cen_circle+plot_pix_image)
+        if num_now ==0:
+            ax_now.set_xlabel("$\Delta$ x [arcsec]")
+            ax_now.set_ylabel("$\Delta$ y [arcsec]")
+
+        else:
+
+            ax_now.set_xticks([])
+            ax_now.set_yticks([])            
+        ax_now.set_title(titles[num_now])
+        #ax_now.scatter(cen_circle, cen_circle, s = 10, color="r")
+        #for circle_now in circle_arr:
+        #    ax_now.add_patch(circle_now)
+        #z2 =ax_now.contour(image_out, levels = [-2 * std , 2 * std], colors=["w","k"], extent = extent_for_deprojected_cont  )
+        z1 = ax_now.imshow(image_out, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap =  cmap )
+        cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+        cbar = plt.colorbar(z1,cax=cax1, ticks=[-max_std_lw * std , 0, max_std_up* std], label = "residual S/N")
+        cbar.ax.set_yticklabels(["-%d" % max_std_lw, '0', "%d" % max_std_up])           
+
+    plt.savefig(os.path.join(folder_fig, "%s.pdf" % target_name), 
+               bbox_inches='tight')    
+    plt.show()
+    return None
+
+
+
+
+def plotter_image_res_cont(target_name, folder_raw, folder_res, folder_mcmc, folder_fig, pickle_name_before_deprojected, pickle_name_deprojected, \
+     pickle_name_raw_before_deprojected, pickle_name_raw_deprojected, max_std_lw, max_std_up, max_flux_lw = None, max_flux_up = None, pix_interp = 500, dx_interp = 0.01, rad_circle_arr = [0.25, 0.50, 1, 1.5], cen_circle =0, \
+        dx_image = 0.006, cen = 0, plot_pix_image_scale = 1, plot_pix_image_scale_for_zoom = 0.5, nx_image = 2, ny_image = 2, cmap = "jet", vmin = -6, vmax = -2, log_scale = True):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_raw: folder for image (os.path.join(folder_res,"image_%s.fits" % target_name )
+        folder_res: folder for residual (os.path.join(folder_raw,"image_%s.fits" % target_name )
+        folder_mcmc: folder containing mcmc result
+        folder_fig: folder for output fig
+        pickle_name_before_deprojected: pickle file for (residual) image
+        pickle_name_deprojected: pickle file  for deprojected (residual) image
+        max_std_lw, max_std_up: lower, upper bounds for plots 
+        pix_interp: number of pixels for interpolated deprojected image (pix_interp * pix_interp)
+        dx_interp: angular size of one pixel for interpolated deprojected image
+        rad_circle_arr: radii for circles plotted for reference
+        cen_circle: center of circle
+        dx_image: pixel scale for image
+        cen: central coordinate of image
+        plot_pix_image_scale: scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+        plot_pix_image_scale_for_zoom: zooming scale parameter determines the half width of plotted image in unit of outer radius of disk (r_max_interp)
+    Return:
+        None
+    """
+
+    ## Preparation
+    image, res = get_raw_and_res(target_name, folder_raw, folder_res)
+    if image is None:
+        return None, None
+    r_max_interp, interp_f = make_radial_profile_target(target_name, folder_raw, folder_mcmc, dx_image)
+    plot_pix_image = plot_pix_image_scale * r_max_interp
+    plot_pix_image_zoom =plot_pix_image_scale_for_zoom  * r_max_interp
+    interp_ext = dx_interp * pix_interp * 0.5
+    extent_for_deprojected=[interp_ext,-interp_ext,interp_ext,-interp_ext]
+    extent_for_deprojected_cont=[interp_ext,-interp_ext,-interp_ext,+interp_ext]
+    nx, ny = np.shape(image)
+    d_extent = dx_image * (nx/2)
+    extent=[d_extent,-d_extent,+d_extent,-d_extent]
+
+    ## Plot
+    fig, ax_now = plt.subplots(figsize = (10,10) )
+    
+    divider1 = make_axes_locatable(ax_now)  
+    interpolator, image_out = make_deprojected_image(target_name,folder_mcmc,pickle_name_before_deprojected, \
+        pickle_name_deprojected, res, dx_image, pix_interp, dx_interp)
+    interpolator_raw, image_out_raw = make_deprojected_image(target_name,folder_mcmc, pickle_name_raw_before_deprojected, \
+        pickle_name_raw_deprojected, image, dx_image, pix_interp, dx_interp)
+    std = np.std(image_out[np.isfinite(image_out)])
+    print(std)
+    circle_arr = make_cirle(rad_circle_arr , cen_circle)
+    ax_now.set_xlim(cen_circle+plot_pix_image, cen_circle-plot_pix_image)
+    ax_now.set_ylim(cen_circle-plot_pix_image, cen_circle+plot_pix_image)
+    if max_flux_lw is None:
+        z2 =ax_now.contour(image_out, levels = [-std * max_std_lw , std * max_std_up], colors=["g","k"], extent = extent_for_deprojected_cont, alpha = 1 )
+    else:
+        z2 =ax_now.contour(image_out, levels = [max_flux_lw , max_flux_up], colors=["g","k"], extent = extent_for_deprojected_cont, alpha = 1)
+    if log_scale:
+        z1 = ax_now.imshow(np.log10(image_out_raw),  vmin = vmin, vmax = vmax, extent = extent_for_deprojected, cmap =  cmap )
+    else:
+        z1 = ax_now.imshow(image_out_raw,  vmin = vmin, vmax = vmax, extent = extent_for_deprojected, cmap =  cmap )
+    #z1 = ax_now.imshow(image_out_raw,  extent = extent_for_deprojected, cmap =  cmap )
+    cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+    plt.colorbar(z1,cax=cax1, label = "$\log F$ [Jy/beam]")
+
+    ax_now.set_xlabel("$\Delta x$ [arcsec]")
+    ax_now.set_ylabel("$\Delta y$ [arcsec]")
+    ax_now.set_title(target_name)
+    plt.savefig(os.path.join(folder_fig, "%s.pdf" % target_name), 
+               bbox_inches='tight')    
+    plt.show()
+    return image_out_raw, image_out
+    

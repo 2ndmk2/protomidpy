@@ -187,7 +187,7 @@ def test_for_prob_mat_w_fixed_H_mat(other_theta, log10_alpha_arr, gamma_arc_arr,
         term1_mat.append(term1_arr)
         term2_mat.append(term2_arr)
         term3_mat.append(term3_arr)
-
+        
     return evidence_mat, gamma_mat, alpha_mat, term1_mat, term2_mat, term3_mat
 
 def test_for_prob(theta,  r_dist, u_d, v_d, vis_d, sigma_d,  R_out, N, dpix, q_dist_model, H_mat_model, factor_all, r_pos, cov="matern", nu = -100):

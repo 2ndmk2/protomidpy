@@ -66,7 +66,10 @@ def load_obsdata(file_name):
     u_d = data["u_obs"]
     vis_d = data["vis_obs"]
     wgt_d = data["wgt_obs"]
-    freq_d = data["freq_obs"]
+    try:
+        freq_d = data["freq_obs"]
+    except:
+        freq_d = None
     return u_d, v_d, vis_d, wgt_d, freq_d
 
 def q_max_determine(u_d, v_d):

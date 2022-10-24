@@ -116,7 +116,7 @@ def grid_search_evidence_bin_rad(u_d, v_d, vis_d, wgt_d, cov, nu_now, log10_alph
     np.savez(os.path.join(out_dir, "evidence") , evidence_mat = evidence_mat, gamma_mat = gamma_mat, alpha_mat = alpha_mat, \
             term1_mat = term1_mat, term2_mat = term2_mat, term3_mat = term3_mat, log_alpha_arr =  log10_alpha_arr, gamma_arr = gamma_arc_arr)
 
-
+    return q_grid_1d_lg_data, vis_grid_1d_lg_data, noise_grid_1d_lg_data, d_data_grid_1d, sigma_mat_grid_1d
 
 def grid_search_evidence(u_d, v_d, vis_d, wgt_d, cov, nu_now, log10_alpha_arr, gamma_arc_arr,  header_name_for_file = "test", out_dir = "./", nrad=30, dpix= 0.1 * ARCSEC_TO_RAD, 
     n_bin_linear=200, n_bin_log=200,  q_min_max_bin = [1e3, 1e7], pa_assumed=0, cosi_assumed=0, delta_x_assumed =0, delta_y_assumed =0):
