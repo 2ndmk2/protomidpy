@@ -11,7 +11,7 @@ from georadial.covariance import ARCSEC_TO_RAD
 
 def log_gridding_1d(xmin, xmax, n_d_log):
 
-    dx = (np.log10(xmax) - np.log10(xmin))/(n_d_log+1.0)
+    dx = (np.log10(xmax) - np.log10(xmin))/(n_d_log)
     xedges = np.linspace(np.log10(xmin), np.log10(xmax), n_d_log+1)
     xedges_for_meshgrid_side = 0.5*dx  + np.linspace(np.log10(xmin), np.log10(xmax), n_d_log+1)
     xedges_for_meshgrid_side = xedges_for_meshgrid_side[:n_d_log]    
@@ -25,8 +25,8 @@ def log_gridding_1d(xmin, xmax, n_d_log):
 
 def linear_gridding_1d(xmin, xmax, n_d_log):
 
-    dx = (xmax - xmin)/(n_d_log+1.0)
-    xedges = np.linspace(xmin, xmax, n_d_log+1)
+    dx = (xmax - xmin)/(n_d_log)
+    xedges = np.linspace(xmin, xmax, n_d_log)
     xedges_for_meshgrid_side = 0.5*dx  + np.linspace(xmin, xmax, n_d_log+1)
     xedges_for_meshgrid_side = xedges_for_meshgrid_side[:n_d_log]    
     coord_for_grid = xedges
@@ -37,13 +37,11 @@ def linear_gridding_1d(xmin, xmax, n_d_log):
     rep_positions_for_grid = np.sort(rep_positions_for_grid)
     return coord_for_grid
 
-
 def data_binning_1d(x, y, weights, grid):
     weight_sum, xedges, binnumber =  binned_statistic( x, weights, 'sum', bins=grid)
     vis_real_sum, xedges, binnumber =  binned_statistic(x, y.real * weights, 'sum', bins=grid)
     vis_imag_sum, xedges, binnumber =  binned_statistic(x, y.imag * weights,  'sum', bins=grid)
     x_sum, xedges, binnumber =  binned_statistic(x, x * weights,  'sum', bins=grid)
-
     mask = weight_sum>0
     vis_real_masked = np.ravel(vis_real_sum[mask])/np.ravel(weight_sum[mask])    
     vis_imag_masked = np.ravel(vis_imag_sum[mask])/np.ravel(weight_sum[mask])
@@ -55,17 +53,15 @@ def data_binning_1d(x, y, weights, grid):
     d_data = np.append(vis_grid_1d.real, vis_grid_1d.imag)
     return x_masked, vis_grid_1d, noise_grid_1d, d_data, sigma_mat_1d
 
-
 def take_rep(x):
     x_rep = []
     for i in range(len(x)-1):
         x_rep.append( (x[i] + x[i+1] )/2.0)
     return np.array(x_rep)
 
-
 def log_gridding_2d(xmin,xmax,  n_d_log):
 
-    dx = (np.log10(xmax) - np.log10(xmin))/(n_d_log+1.0)
+    dx = (np.log10(xmax) - np.log10(xmin))/(n_d_log)
     xedges = np.linspace(np.log10(xmin), np.log10(xmax), n_d_log+1)   
     xedges_for_meshgrid_side = 0.5*dx  + np.linspace(np.log10(xmin), np.log10(xmax), n_d_log+1)
     xedges_for_meshgrid_side = xedges_for_meshgrid_side[:n_d_log]
@@ -79,7 +75,7 @@ def log_gridding_2d(xmin,xmax,  n_d_log):
 def linear_gridding_2d(xmin,xmax,  n_d_log):
 
     dx = (xmax - xmin)/(n_d_log+1.0)
-    xedges = np.linspace(xmin, xmax, n_d_log+1)
+    xedges = np.linspace(xmin, xmax, n_d_log)
     xedges_for_meshgrid_side = 0.5*dx  + np.linspace(xmin, xmax, n_d_log+1)
     xedges_for_meshgrid_side = xedges_for_meshgrid_side[:n_d_log]  
     coord_for_grid = xedges
