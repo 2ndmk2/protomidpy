@@ -11,6 +11,37 @@ from scipy.interpolate import LinearNDInterpolator
 import pickle
 from georadial import data_gridding
 
+from math import floor, log10
+
+def sci_notation(num, decimal_digits=2, precision=None, exponent=None):
+    """
+    Returns a string representation of the scientific
+    notation of the given number formatted for use with
+    LaTeX or Mathtext, with specified number of significant
+    decimal digits and precision (number of decimal digits
+    to show). The exponent to be used can also be specified
+    explicitly.
+
+    Taken from https://stackoverflow.com/questions/18311909/how-do-i-annotate-with-power-of-ten-formatting
+    """
+    if exponent is None:
+        exponent = int(floor(log10(abs(num))))
+    coeff = round(num / float(10**exponent), decimal_digits)
+    if precision is None:
+        precision = decimal_digits
+    return r"${0:.{2}f}\times10^{{{1:d}}}$".format(coeff, exponent, precision)
+
+def compute_beamarea_from_fits(file):
+    
+    hdul = fits.open(file)
+    header = hdul[0].header
+    bmaj = header["BMAJ"] * 3600
+    bmin = header["BMIN"] * 3600
+    bpa =  header["BPA"]
+    beam_area = (np.pi/(4*np.log(2)))*bmaj * bmin
+    return bmaj, bmin, bpa, beam_area
+
+
 
 def get_image(target_name, folder_image):
 
@@ -19,7 +50,17 @@ def get_image(target_name, folder_image):
         return None
 
     hdul = fits.open(image_file )
-    image = hdul[0].data[0][0]
+    image =  np.flip(hdul[0].data[0][0], axis=1)
+    hdul.close()
+    return image
+
+def get_image_from_file(image_file):
+
+    if not os.path.exists(image_file ):
+        return None
+
+    hdul = fits.open(image_file )
+    image =  np.flip(hdul[0].data[0][0], axis=1)
     hdul.close()
     return image
 
@@ -42,7 +83,6 @@ def interpolate_image_ND(image, dpix = 0.01):
     x = make_coordinate(nx, dpix)
     y = make_coordinate(ny, dpix)
     xx, yy = np.meshgrid(x, y)
-    xx = -xx
     f = LinearNDInterpolator(list(zip(np.ravel(xx), np.ravel(yy))), np.ravel(image))    
     return f
 
@@ -67,6 +107,7 @@ def make_interpolated_pickle(pickle_name, res, dx_original_image):
     else:
         with open(pickle_name, "rb") as f:
             int_f  = pickle.load(f)
+            
     return int_f
 
 
@@ -114,7 +155,7 @@ def integral_polar(r_arr, phi, m, delta_phi, interpolator):
         cosphi= np.cos(phi * m)
         sinphi= np.sin(phi * m)
         cos_value = np.sum(cosphi * z) * delta_phi
-        sin_value = - np.sum(sinphi * z) * delta_phi
+        sin_value =  np.sum(sinphi * z) * delta_phi
         angle = np.arctan2(sin_value , cos_value)
         abs_value = (1/np.pi) * (cos_value**2 + sin_value**2)**0.5
         abs_val_arr.append(abs_value)
@@ -795,8 +836,92 @@ def plotter_images_new(target_name, folder_images, folder_fig,  \
     plt.show()
     return None
 
-def plotter_image(target_name, image_raw, folder_fig,  \
+def plotter_for_res_single(target_name, res, folder_fig,  \
+     max_std_lw=5, max_std_up=5,  dx_image = 0.006,  xlim_image = 1, title="",  cmap = "jet"):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_image: image
+        folder_fig: folder for output fig
+        max_std_lw, max_std_up: lower, upper bounds for plots 
+        dx_image: pixel scale for image
+        xlim_image: x-range for image
+        titles: array for titles
+        cmap: type of color map
+    Return:
+        None
+    """
+
+    fig, ax_now = plt.subplots(figsize = (10,10) )
+    divider1 = make_axes_locatable(ax_now)  
+    nx,_  = np.shape(res)
+    interp_ext = dx_image * nx * 0.5
+    extent_for_deprojected=[interp_ext,-interp_ext,interp_ext,-interp_ext]
+    std = np.std(res)
+    ax_now.set_xlim(xlim_image, -xlim_image)
+    ax_now.set_ylim(-xlim_image, xlim_image)
+    ax_now.set_xlabel("$\Delta x$ [arcsec]")
+    ax_now.set_ylabel("$\Delta y$ [arcsec]")
+    ax_now.set_title(title)
+    z1 = ax_now.imshow(res, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap =  cmap )
+    cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+    cbar = plt.colorbar(z1,cax=cax1, ticks=[-max_std_lw * std , 0, max_std_up* std], label = "residual S/N")
+    cbar.ax.set_yticklabels(["-%d$\sigma$" % max_std_lw, '0', "%d$\sigma$" % max_std_up])           
+    plt.savefig(os.path.join(folder_fig, "%s.pdf" % target_name), 
+               bbox_inches='tight')    
+    plt.show()
+    return None
+
+
+def plotter_for_image_single(target_name, res, folder_fig,  \
+     vlims = None, dx_image = 0.006,  xlim_image = 1, title="",  cmap = "jet"):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_image: image
+        folder_fig: folder for output fig
+        max_std_lw, max_std_up: lower, upper bounds for plots 
+        dx_image: pixel scale for image
+        xlim_image: x-range for image
+        titles: array for titles
+        cmap: type of color map
+    Return:
+        None
+    """
+
+    fig, ax_now = plt.subplots(figsize = (10,10) )
+    divider1 = make_axes_locatable(ax_now)  
+    nx,_  = np.shape(res)
+    interp_ext = dx_image * nx * 0.5
+    extent_for_deprojected=[interp_ext,-interp_ext,interp_ext,-interp_ext]
+    std = np.std(res)
+    ax_now.set_xlim(xlim_image, -xlim_image)
+    ax_now.set_ylim(-xlim_image, xlim_image)
+    ax_now.set_xlabel("$\Delta x$ [arcsec]")
+    ax_now.set_ylabel("$\Delta y$ [arcsec]")
+    ax_now.set_title(title)
+    if vlims is None:
+        z1 = ax_now.imshow(res, extent = extent_for_deprojected, cmap =  cmap )
+        cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+        cbar = plt.colorbar(z1,cax=cax1, label = "Flux [Jy/beam]")
+    else:
+        z1 = ax_now.imshow(res, vmin =vlims[0] , vmax = vlims[1], extent = extent_for_deprojected, cmap =  cmap )
+        cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+        cbar = plt.colorbar(z1,cax=cax1, label = "Flux [Jy/beam]")
+        
+    plt.savefig(os.path.join(folder_fig, "%s.pdf" % target_name), 
+    bbox_inches='tight')    
+    plt.show()
+    return None
+
+
+def plotter_image(target_name, image_raw, folder_fig,  color_label = "$\log F$ [Jy/beam]",  \
       dx_image = 0.006,  xlim_image = 1,  cmap = "jet", vmin = 1e-5, vmax = 1e-1, title = "None"):
+    
     """
     Plotting image, residual, deprojected residual, & zoom deprojected residual. 
 
@@ -828,8 +953,8 @@ def plotter_image(target_name, image_raw, folder_fig,  \
     z1 = ax_now.imshow(image_raw,  vmin = vmin, vmax = vmax, extent = extent_for_deprojected, cmap =  cmap )
     cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
     plt.colorbar(z1,cax=cax1, label = "$\log F$ [Jy/beam]")
-    ax_now.set_xlabel("$\Delta x$ [arcsec]", fontsize =32)
-    ax_now.set_ylabel("$\Delta y$ [arcsec]", fontsize =32)
+    ax_now.set_xlabel("$\Delta$ ra [arcsec]", fontsize =32)
+    ax_now.set_ylabel("$\Delta$ dec [arcsec]", fontsize =32)
     if title is None:
         ax_now.set_title(target_name, fontsize=32)
     else:

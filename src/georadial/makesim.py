@@ -41,6 +41,10 @@ def load_profile(filename, beam_maj, beam_min, r_max =100):
     flux_fanc = interpolate.interp1d(r_arcsec_arr, flux_arr)
     return r_arcsec_arr, flux_arr, flux_fanc
 
+def modify_profile(r_arcsec_arr, flux_arr, a):
+    flux_fanc = interpolate.interp1d(r_arcsec_arr * a, flux_arr)
+    return flux_fanc
+
 def model_extend(flux_fanc, a):
     flux_mod = lambda x:  flux_fanc(a*x)
     return flux_mod
@@ -51,7 +55,7 @@ def resampling_model(flux_fanc, R_out, N):
     return r_n, flux_rn
     
 def transform_for_computing_vis(u_d, v_d, pa, cosi, R_out, N):
-    cos_pa = np.cos(pa)
+    cos_pa = np.cos(pa) 
     sin_pa = np.sin(pa)
     u_new_d = -cos_pa * u_d + sin_pa *v_d
     v_new_d = -sin_pa * u_d - cos_pa *v_d
@@ -69,3 +73,16 @@ def add_noise_to_data(vis_model, sigma):
 def save_sim(file_head, r_n, flux_r_n, flux_raw, u_obs, v_obs, vis_obs, wgt_obs):
     np.savez(file_head + "_vis", u_obs = u_obs, v_obs = v_obs,vis_obs = vis_obs, wgt_obs  = wgt_obs )
     np.savez(file_head + "_model", r_pos = r_n, flux =flux_r_n, flux_raw = flux_raw)
+
+def save_sim_two_pols(file_head, r_n, flux_r_n, flux_raw, u_obs, v_obs, vis_obs, vis_obs_pol1, vis_obs_pol2, wgt_obs):
+    np.savez(file_head + "_vis", u_obs = u_obs, v_obs = v_obs, vis_obs = vis_obs, \
+             vis_obs_pol1 = vis_obs_pol1, vis_obs_pol2 = vis_obs_pol2, wgt_obs  = wgt_obs )
+    np.savez(file_head + "_model", r_pos = r_n, flux =flux_r_n, flux_raw = flux_raw)
+
+def save_model(file_head, r_n, flux_r_n, flux_raw):
+    np.savez(file_head + "_model", r_pos = r_n, flux =flux_r_n, flux_raw = flux_raw)
+
+def save_sim_w_pointsource(file_head, r_n, flux_r_n, x_p, y_p, F_p, flux_raw, u_obs, v_obs, vis_obs, vis_obs_pol1, vis_obs_pol2, wgt_obs):
+    np.savez(file_head + "_vis", u_obs = u_obs, v_obs = v_obs, vis_obs = vis_obs, \
+             vis_obs_pol1 = vis_obs_pol1, vis_obs_pol2 = vis_obs_pol2, wgt_obs  = wgt_obs )
+    np.savez(file_head + "_model", r_pos = r_n, flux =flux_r_n, flux_raw = flux_raw, x_p = x_p, y_p = y_p, F_p = F_p)
