@@ -65,8 +65,15 @@ def make_para_dic_for_mcmc(para_file):
     para_dic = {}
     for line in lines:
         itemList = line.split()
-        para_dic[itemList[0]] = float(itemList[1])
+        if itemList[1].isdigit():
+            para_dic[itemList[0]] = int(itemList[1])
+        else:
+            try:
+                para_dic[itemList[0]] = float(itemList[1])
+            except:
+                para_dic[itemList[0]] = str(itemList[1])
     return para_dic
+
 
 def make_init_mcmc_for_two(para_dic,  nwalker,  x_est = None, y_est = None, target ="", cov="RBF"):
     """ Generate random walkers for emcee
