@@ -1,5 +1,5 @@
 # georadial
-Estimating radial profile & geometry for proto-planetary disks in ALMA 
+Estimating itensity profile & geometry & hyperparameters proto-planetary disks in ALMA 
 
 ## Install 
 For normal install, 
