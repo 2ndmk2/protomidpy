@@ -11,6 +11,6 @@ For developers,
 *  *For conda/pip env*, go to parental directory of georadial, and "pip install -e ./georadial"
 
 ## Test run
-* Download test data from https://github.com/2ndmk2/dsharp_averaged_data
-* go to tests
-* put test data in a data directory and do "run.sh"
+1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
+2. go to "tests" folder
+3. put test data in a data directory and do "run.sh"
