@@ -6,12 +6,11 @@ For normal install,
 * python setup.py install
 * *For conda/pip env*, go to parental directory of georadial, and "pip install ./georadial"
 
-## Install for development
 For developers, 
-
 * python setup.py develop
 *  *For conda/pip env*, go to parental directory of georadial, and "pip install -e ./georadial"
 
 ## Test run
-Go to ipynb & tests folder
-
+* Download test data from https://github.com/2ndmk2/dsharp_averaged_data
+* go to tests
+* put test data in a data directory and do "run.sh"
