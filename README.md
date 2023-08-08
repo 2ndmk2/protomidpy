@@ -34,9 +34,10 @@ For developers,
 
 
 ### 3) See result
-1. Go to ipynb folder, and run mcmc_plotter.ipynb 
-   - Modify "samplefile" & "modelfile" to make them correct paths.
-
+1. Go to ipynb folder, and run mcmc_plotter.ipynb
+   - *samplefile*: path to "~~vis_mcmc.npz" output from run.sh
+   - *modelfile*: path to output file from model_calc.py
+   
 ------
 
 # Appendix
