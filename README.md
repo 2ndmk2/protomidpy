@@ -19,8 +19,8 @@ For developers,
 ### 1) MCMC run
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
    - **If you use your own data**, you have to convert ".ms" file to ".npz" file that should have columns
-       - "u_obs": Spatial frequency "u" [lamnbda]
-       - "v_obs": Spatial frequency "v" [lamnbda]
+       - "u_obs": Spatial frequency "u" [lambda]
+       - "v_obs": Spatial frequency "v" [lambda]
        - "vis_obs": Visibility 
        - "wgt_obs": Weights
 3. Make "vis_data" folder ant put the data there
