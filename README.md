@@ -32,7 +32,7 @@ For developers,
 **[mcmc_config.dat]**  
 Parameters for emcee and model  
 
-Nrad: Number of radial point for model intensity)  
+*Nrad*: Number of radial point for model intensity)  
 Nbin: Determine binning grid. Grid size is (2*Nbin+1, 2*Nbin+1)  
 Dpix: Radial spacing for model [arcsec]. Rout = Nrad * Dpix) 
 Nwalker: Number of walkers for emcee)  
@@ -42,7 +42,7 @@ out_folder: Path to output folder
 
 **[AS209_paradic.dat]**  
 Parameters determining initial positions for mcmc.  
-They are randonly generated with uniform distribution [value - 0.5*scatter, value+0.5*scatter].  
+They are randonly generated with uniform distribution [value-scatter/2,value+scatter/2].  
 
 **[prior.dat]**  
 Parameters determining parameter priors. 
