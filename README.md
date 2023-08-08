@@ -23,9 +23,9 @@ For developers,
        - "v_obs": Spatial frequency "v" [lambda]
        - "vis_obs": Visibility 
        - "wgt_obs": Weights
+2. Move to "tests" folder
 3. Make "vis_data" folder ant put the data there
-4. Move to "tests" folder
-5. Run "bash run.sh"  
+4. Run "bash run.sh"  
    - Modify config files (See Appendix in end of this page) as you need  
    - Option "--n_process" determines the number of cores you use for mcmc (default 3)  
    - **This step is most time consuming. Need ~1.5 hours to finish (32 walkers, 1000 steps) with 16 cores.**
