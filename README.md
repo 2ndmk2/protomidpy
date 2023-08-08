@@ -1,8 +1,7 @@
 # georadial
 Estimating itensity radial profile & geometry & hyperparameters proto-planetary disks in ALMA  
 - For technical details of algorithm and mathematic background, you can find them in Aizawa, Muto, Momose 2023
-
-<img src="https://github.com/2ndmk2/georadial/tree/main/tests/fig_for_doc/mcmc.png" alt="test" title="test">
+<img width="50" src="https://github.com/2ndmk2/georadial/tree/main/tests/fig_for_doc/mcmc.png">
 
 ## Install 
 For normal install, 
