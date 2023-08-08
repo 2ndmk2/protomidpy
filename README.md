@@ -18,7 +18,8 @@ For developers,
 2. Make "vis_data" folder ant put the data there
 3. Move to "tests" folder
 4. Run "bash run.sh"
-   Modify config files (See appendix) as you need  
+   Modify config files (See Appendix in end of this page) as you need
+   Option "--n_process" determines the number of cores you use for mcmc (default 3)
    **This step is most time consuming. Need ~1.5 hours to finish (32 walkers, 1000 steps) with 16 cores.**
 
 ### 2) Postprocess after MCMC
