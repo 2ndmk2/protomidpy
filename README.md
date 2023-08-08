@@ -1,7 +1,8 @@
 # georadial
 Estimating itensity radial profile & geometry & hyperparameters proto-planetary disks in ALMA  
 - For technical details of algorithm and mathematic background, you can find them in Aizawa, Muto, Momose 2023
-![Test Image 1](tests/fig_for_doc/mcmc.png)
+<img alt="hogehoge" src="tests/fig_for_doc/mcmc.png" width="30">
+
 ## Install 
 For normal install, 
 * python setup.py install or pip install ./georadial
