@@ -9,6 +9,9 @@ For normal install,
 For developers, 
 * python setup.py develop
 *  *For conda/pip env*, go to parental directory of georadial, and "pip install -e ./georadial"
+*  
+## Prerequisites
+- astropy, emcee, corner, matplotlib, numpy, scipy, pandas, (Jupyter notebook)
 
 ## MCMC run
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
