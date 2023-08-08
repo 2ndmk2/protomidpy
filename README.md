@@ -1,6 +1,6 @@
 # georadial
 Estimating itensity radial profile & geometry & hyperparameters proto-planetary disks in ALMA  
-- For technical details of algorithm and mathematic background, you can find them in Aizawa, Muto, Momose 2023
+- For technical details of algorithm and mathematic background, please read Aizawa, Muto, Momose 2023
 <img src="tests/fig_for_doc/fig_for_doc.jpeg" width="850">
 
 
