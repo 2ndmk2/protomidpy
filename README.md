@@ -30,14 +30,14 @@ For developers,
 **[mcmc_config.dat]**  
 Parameters for emcee and model  
 
----
-Nrad 200 (Number of radial point for model intensity)  
-Nbin 500 (Determine binning grid. Grid size is (2*Nbin+1, 2*Nbin+1)  
-Dpix 0.01 (Radial spacing for model [arcsec]. Rout = Nrad * Dpix) 
-Nwalker 32  (Number of walkers for emcee)  
-Nchain 1000  (Number of chains for emcee)  
-cov RBF  (Choice of regularization)
-out_folder ./result (Output folder)
+------
+Nrad: Number of radial point for model intensity)  
+Nbin: Determine binning grid. Grid size is (2*Nbin+1, 2*Nbin+1)  
+Dpix: Radial spacing for model [arcsec]. Rout = Nrad * Dpix) 
+Nwalker: Number of walkers for emcee)  
+Nchain: Number of chains for emcee)  
+cov: Choice of regularization (default is RBF)
+out_folder: Path to output folder
 
 **[AS209_paradic.dat]**  
 Parameters determining initial positions for mcmc.  
