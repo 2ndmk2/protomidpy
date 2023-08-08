@@ -19,7 +19,6 @@ For developers,
 3. Move to "tests" folder
 4. Run "bash run.sh"  
    **This step is most time consuming. Need ~1.5 hours to finish (32 walkers, 1000 steps) with 16 cores.**
-   
 
 ### 2) Postprocess after MCMC
 1. Calculate model itensity & visibility profile using "model_calc.py"
