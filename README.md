@@ -17,7 +17,8 @@ For developers,
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
 2. Make "vis_data" folder ant put the data there
 3. Move to "tests" folder
-4. Run "bash run.sh"  
+4. Run "bash run.sh"
+   Modify config files (See appendix) as you need  
    **This step is most time consuming. Need ~1.5 hours to finish (32 walkers, 1000 steps) with 16 cores.**
 
 ### 2) Postprocess after MCMC
@@ -29,7 +30,8 @@ For developers,
 
 ------
 
-### Config files
+# Appendix
+## Config files
 **[mcmc_config.dat]**  
 Parameters for emcee and model  
 
