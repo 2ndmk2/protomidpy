@@ -15,7 +15,8 @@ For developers,
 
 ### 1) MCMC run
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
-   - ".npz" file should have columns for "u_obs", "v_obs", "vis_obs", "wgt_obs"
+   - You have to convert ".ms" file to ".npz" file that should have columns
+     -"u_obs", "v_obs", "vis_obs", "wgt_obs"
 3. Make "vis_data" folder ant put the data there
 4. Move to "tests" folder
 5. Run "bash run.sh"  
