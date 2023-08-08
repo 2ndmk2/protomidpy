@@ -25,14 +25,12 @@ For developers,
 ### 2) Postprocess after MCMC
 
 1. Modify "model_calc.py" as you like
-- *n_sample_for_rad*: Number of smaples for intensity profiles
-- *n_burnin*: Number of Burnin samples
-- *mcmc_result_file*: path to "~~vis_mcmc.npz" output from run.sh
-- *visfile*: path to "~~vis.npz" output from run.sh
-- *out_file_for_model*: path to output file from "model_calc.py"
-
-
-3. Calculate model itensity & visibility profile using "model_calc.py"
+    - *n_sample_for_rad*: Number of smaples for intensity profiles
+    - *n_burnin*: Number of Burnin samples
+    - *mcmc_result_file*: path to "~~vis_mcmc.npz" output from run.sh
+    - *visfile*: path to "~~vis.npz" output from run.sh
+    - *out_file_for_model*: path to output file from "model_calc.py"
+2. Calculate model itensity & visibility profile using "model_calc.py"
 
 
 ### 3) See result
