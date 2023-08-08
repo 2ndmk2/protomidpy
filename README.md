@@ -3,13 +3,11 @@ Estimating itensity profile & geometry & hyperparameters proto-planetary disks i
 
 ## Install 
 For normal install, 
-* python setup.py install
-* *For conda/pip env*, go to parental directory of georadial, and "pip install ./georadial"
+* python setup.py install or pip install ./georadial
 
 For developers, 
-* python setup.py develop
-*  *For conda/pip env*, go to parental directory of georadial, and "pip install -e ./georadial"
-*  
+* python setup.py develop or pip install -e ./georadial
+    
 ## Prerequisites
 - astropy, emcee, corner, matplotlib, numpy, scipy, pandas, (Jupyter notebook)
 
