@@ -45,7 +45,7 @@ Parameters determining initial positions for mcmc.
 They are randonly generated with uniform distribution [value-scatter/2,value+scatter/2].  
 
 **[prior.dat]**  
-Parameters determining parameter priors. 
-*prior for alpha*: Uniform prior for [log10_alpha_min, log10_alpha_max]  
-*prior for gamma*: Uniform prior for [min_scale, max_scale ]  
-*prior for disk center*: Uniform prior for [-delta_pos, delta_pos ]  
+Parameters determining parameter priors.  
+prior for alpha: Uniform prior for [log10_alpha_min, log10_alpha_max]  
+prior for gamma: Uniform prior for [min_scale [arcsec], max_scale  [arcsec]]  
+prior for disk center: Uniform prior for [-delta_pos [arcsec], delta_pos  [arcsec]]  
