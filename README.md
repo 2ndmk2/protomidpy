@@ -1,5 +1,5 @@
 # georadial
-Estimating itensity profile & geometry & hyperparameters proto-planetary disks in ALMA  
+Estimating itensity radial profile & geometry & hyperparameters proto-planetary disks in ALMA  
 For technical detail of algorithm and mathematic background, see more detail in Aizawa, Muto, Momose 2023
 
 ## Install 
