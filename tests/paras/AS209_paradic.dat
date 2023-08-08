@@ -1,0 +1,11 @@
+gamma_value 0.03
+log10_alpha_value -1
+gamma_scatter 0.01
+log10_alpha_scatter 0.01
+pa_value 85.7600
+cosi_value 0.8195
+pa_scatter 0.01
+cosi_scatter 0.01
+delta_pos_x 0.0019
+delta_pos_y -0.0025
+delta_pos_scatter 0.05

@@ -1,0 +1,5 @@
+log10_alpha_min -4
+log10_alpha_max 5
+min_scale 0.01
+max_scale 0.15
+delta_pos 1.0
