@@ -29,15 +29,18 @@ For developers,
 
 ### Config files
 - mcmc_config.dat  
-Nrad 200  
-Nbin 500  
-Dpix 0.01  
-Nwalker 32  
-Nchain 1000  
-cov RBF  
-out_folder ./result  
-  
-- AS209_paradic.dat  
+Nrad 200 (Number of radial point for model intensity)  
+Nbin 500 (Determine binning grid. Grid size is (2*Nbin+1, 2*Nbin+1)  
+Dpix 0.01 (Radial spacing for model [arcsec]. Rout = Nrad * Dpix) 
+Nwalker 32  (Number of walkers for emcee)  
+Nchain 1000  (Number of chains for emcee)  
+cov RBF  (Choice of regularization)
+out_folder ./result (Output folder)
+
+- AS209_paradic.dat
+Parameters determining initial positions for mcmc.  
+They are randonly generated with uniform distribution [value - 0.5*scatter, value+0.5*scatter].
+
 gamma_value 0.03  
 log10_alpha_value -1  
 gamma_scatter 0.01  
