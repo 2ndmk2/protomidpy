@@ -15,8 +15,9 @@ For developers,
 
 ### 1) MCMC run
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
-2. go to "tests" folder
-3. put test data in a data directory and do "python run_sampling.py --config mcmc_config.dat"  
+2. Make "vis_data" folder ant put the data there
+3. Move to "tests" folder
+4. Run "python run_sampling.py --config ./paras/mcmc_config.dat --initial_para ./paras/AS209_paradic.dat --prior ./paras/prior.dat --visfile ./vis_data/AS209_continuum_averaged.vis.npz"  
    **This step is most time consuming. Need ~1.5 hours to finish (32 walkers, 1000 steps) with 16 cores.**
 
 ### 2) Postprocess after MCMC
