@@ -28,7 +28,7 @@ For developers,
 1. Go to ipynb folder, and use mcmc_plotter. Modify "samplefile" & "modelfile" to make them correct paths.
 
 ### Config files
-- mcmc_config.dat  
+1) mcmc_config.dat  
 Nrad 200 (Number of radial point for model intensity)  
 Nbin 500 (Determine binning grid. Grid size is (2*Nbin+1, 2*Nbin+1)  
 Dpix 0.01 (Radial spacing for model [arcsec]. Rout = Nrad * Dpix) 
@@ -37,7 +37,7 @@ Nchain 1000  (Number of chains for emcee)
 cov RBF  (Choice of regularization)
 out_folder ./result (Output folder)
 
-- AS209_paradic.dat
+2) AS209_paradic.dat
 Parameters determining initial positions for mcmc.  
 They are randonly generated with uniform distribution [value - 0.5*scatter, value+0.5*scatter].
 
@@ -53,7 +53,12 @@ delta_pos_x 0.0019
 delta_pos_y -0.0025  
 delta_pos_scatter 0.05  
 
-- prior.dat  
+3) prior.dat
+Parameters determining parameter priors. 
+Alpha: Uniform prior for [log10_alpha_min, log10_alpha_max]  
+gamma: Uniform prior for [min_scale, max_scale ]  
+Disk center: Uniform prior for [-delta_pos, delta_pos ]  
+
 log10_alpha_min -4  
 log10_alpha_max 5  
 min_scale 0.01  
