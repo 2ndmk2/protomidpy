@@ -13,16 +13,16 @@ For developers,
 ## Prerequisites
 - astropy, emcee, corner, matplotlib, numpy, scipy, pandas, (Jupyter notebook)
 
-## Run
+## Usage
 
-### MCMC run
+### 1) MCMC run
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
 2. go to "tests" folder
-3. put test data in a data directory and do "run.sh"  
+3. put test data in a data directory and do "python run_sampling.py --config mcmc_config.dat"
    **This step is most time consuming. Need ~1.5 hours to finish 32 waklers * 1000 steps with 16 cores.**
 
-### Postprocess after MCMC
+### 2) Postprocess after MCMC
 1. Calculate model itensity & visibility profile using "model_calc.py"
 
-### Plot
-1. 
+### 3) See result
+1. Go to ipynb folder, and use mcmc_plotter. Modify "samplefile" & "modelfile" to make them correct paths. 
