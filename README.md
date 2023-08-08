@@ -26,46 +26,26 @@ For developers,
 ### 3) See result
 1. Go to ipynb folder, and use mcmc_plotter. Modify "samplefile" & "modelfile" to make them correct paths.
 
+------
+
 ### Config files
 **[mcmc_config.dat]**  
 Parameters for emcee and model  
 
-------
 Nrad: Number of radial point for model intensity)  
 Nbin: Determine binning grid. Grid size is (2*Nbin+1, 2*Nbin+1)  
 Dpix: Radial spacing for model [arcsec]. Rout = Nrad * Dpix) 
 Nwalker: Number of walkers for emcee)  
-Nchain: Number of chains for emcee)  
-cov: Choice of regularization (default is RBF)
-out_folder: Path to output folder
+Nchain: Number of chains for emcee) 
+cov: Choice of regularization (default is RBF)  
+out_folder: Path to output folder  
 
 **[AS209_paradic.dat]**  
 Parameters determining initial positions for mcmc.  
-They are randonly generated with uniform distribution [value - 0.5*scatter, value+0.5*scatter].
-
---- 
-gamma_value 0.03  
-log10_alpha_value -1  
-gamma_scatter 0.01  
-log10_alpha_scatter 0.01  
-pa_value 85.7600  
-cosi_value 0.8195  
-pa_scatter 0.01  
-cosi_scatter 0.01  
-delta_pos_x 0.0019  
-delta_pos_y -0.0025  
-delta_pos_scatter 0.05  
+They are randonly generated with uniform distribution [value - 0.5*scatter, value+0.5*scatter].  
 
 **[prior.dat]**  
 Parameters determining parameter priors. 
-Alpha: Uniform prior for [log10_alpha_min, log10_alpha_max]  
-gamma: Uniform prior for [min_scale, max_scale ]  
-Disk center: Uniform prior for [-delta_pos, delta_pos ]  
-
---- 
-log10_alpha_min -4  
-log10_alpha_max 5  
-min_scale 0.01  
-max_scale 0.15  
-delta_pos 1.0  
-
+prior for alpha: Uniform prior for [log10_alpha_min, log10_alpha_max]  
+prior for gamma: Uniform prior for [min_scale, max_scale ]  
+prior for disk center: Uniform prior for [-delta_pos, delta_pos ]  
