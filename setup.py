@@ -11,7 +11,7 @@ META_PATH = os.path.join("src", "georadial", "__init__.py")
 CLASSIFIERS = [
     "Programming Language :: Python",
 ]
-INSTALL_REQUIRES = ['numpy',  "astropy", "schwimmbad", "emcee"]
+INSTALL_REQUIRES = ['numpy',  "astropy", "schwimmbad", "emcee","corner", "scipy", "matplotlib", "pandas"]
 # END PROJECT SPECIFIC
 HERE = os.path.dirname(os.path.realpath(__file__))
 
