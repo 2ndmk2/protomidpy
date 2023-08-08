@@ -36,13 +36,13 @@ For developers,
 **[mcmc_config.dat]**  
 Parameters for emcee and model  
 
-*Nrad*: Number of radial point for model intensity)  
-*Nbin*: Determine binning grid. Grid size is (2*Nbin+1, 2*Nbin+1)  
-*Dpix*: Radial spacing for model [arcsec]. Outer disk radius is determined as "Rout = Nrad * Dpix"  
-*Nwalker*: Number of walkers for emcee)  
-*Nchain*: Number of chains for emcee)  
-*cov*: Choice of regularization (default is RBF)  
-*out_folder*: Path to output folder  
+- *Nrad*: Number of radial point for model intensity)  
+- *Nbin*: Determine binning grid. Grid size is (2*Nbin+1, 2*Nbin+1)  
+- *Dpix*: Radial spacing for model [arcsec]. Outer disk radius is determined as "Rout = Nrad * Dpix"  
+- *Nwalker*: Number of walkers for emcee)  
+- *Nchain*: Number of chains for emcee)  
+- *cov*: Choice of regularization (default is RBF)  
+- *out_folder*: Path to output folder  
 
 **[AS209_paradic.dat]**  
 Parameters determining initial positions for mcmc.  
@@ -50,6 +50,6 @@ They are randonly generated with uniform distribution [value-scatter/2,value+sca
 
 **[prior.dat]**  
 Parameters determining parameter priors.  
-prior for alpha: Uniform prior for [log10_alpha_min, log10_alpha_max]  
-prior for gamma: Uniform prior for [min_scale [arcsec], max_scale  [arcsec]]  
-prior for disk center: Uniform prior for [-delta_pos [arcsec], delta_pos  [arcsec]]  
+- prior for alpha: Uniform prior for [log10_alpha_min, log10_alpha_max]  
+- prior for gamma: Uniform prior for [min_scale [arcsec], max_scale  [arcsec]]  
+- prior for disk center: Uniform prior for [-delta_pos [arcsec], delta_pos  [arcsec]]  
