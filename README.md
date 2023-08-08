@@ -14,6 +14,7 @@ For developers,
 - astropy, emcee, corner, matplotlib, numpy, scipy, pandas, (Jupyter notebook)
 
 ## Run
+
 ### MCMC run
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
 2. go to "tests" folder
