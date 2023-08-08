@@ -1,8 +1,7 @@
-![visfit_real](https://github.com/2ndmk2/georadial/assets/23694434/1cd09025-e0ae-476f-8c02-c1cd65a41e8e)# georadial
+# georadial
 Estimating itensity radial profile & geometry & hyperparameters proto-planetary disks in ALMA  
 - For technical details of algorithm and mathematic background, you can find them in Aizawa, Muto, Momose 2023
-<img alt="hogehoge" src="tests/fig_for_doc/mcmc.png" width="250">
-<img alt="hogehoge" src="tests/fig_for_doc/visfit_real.png" width="250">
+<img alt="hogehoge" src="tests/fig_for_doc/fig_for_doc.jpeg" width="250">
 
 
 ## Install 
