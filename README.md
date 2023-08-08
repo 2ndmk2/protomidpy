@@ -34,7 +34,7 @@ Parameters for emcee and model
 
 *Nrad*: Number of radial point for model intensity)  
 *Nbin*: Determine binning grid. Grid size is (2*Nbin+1, 2*Nbin+1)  
-*Dpix*: Radial spacing for model [arcsec]. Rout = Nrad * Dpix) 
+*Dpix*: Radial spacing for model [arcsec]. Rout = Nrad * Dpix)  
 *Nwalker*: Number of walkers for emcee)  
 *Nchain*: Number of chains for emcee)  
 *cov*: Choice of regularization (default is RBF)  
