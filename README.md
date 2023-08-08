@@ -28,7 +28,6 @@ For developers,
 1. Go to ipynb folder, and use mcmc_plotter. Modify "samplefile" & "modelfile" to make them correct paths.
 
 ### Config files
-
 - mcmc_config.dat  
 Nrad 200  
 Nbin 500  
