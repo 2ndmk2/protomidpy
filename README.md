@@ -24,7 +24,7 @@ For developers,
 1. Calculate model itensity & visibility profile using "model_calc.py"
 
 ### 3) See result
-1. Go to ipynb folder, and use mcmc_plotter.
+1. Go to ipynb folder, and use mcmc_plotter.  
    Modify "samplefile" & "modelfile" to make them correct paths.
 
 ------
