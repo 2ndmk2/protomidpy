@@ -16,7 +16,7 @@ For developers,
 
 ## Usage
 
-### 1) MCMC run
+### 1) MCMC run (sampling from g($\theta,g$,$d$))
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
    - **If you use your own data**, you have to convert ".ms" file to ".npz" file that should have columns for 1d arrays
        - "u_obs": Spatial frequency "u" [lambda]
