@@ -16,7 +16,7 @@ For developers,
 
 ## Usage
 
-### 1) MCMC run (sampling from g($\theta,g$,$d$))
+### 1) MCMC run (sampling from g($\theta,g|d$))
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
    - **If you use your own data**, you have to convert ".ms" file to ".npz" file that should have columns for 1d arrays
        - "u_obs": Spatial frequency "u" [lambda]
@@ -30,7 +30,7 @@ For developers,
    - Option "--n_process" determines the number of cores you use for mcmc (default 3)  
    - **This step is most time consuming. Need ~1.5 hours to finish (32 walkers, 1000 steps) with 16 cores.**
 
-### 2) Postprocess after MCMC
+### 2) Postprocess after MCMC (sampling from g($a|d$)) and computing model visibilities)
 
 1. Modify "model_calc.py" as you like
     - *n_sample_for_rad*: Number of smaples for intensity profiles
