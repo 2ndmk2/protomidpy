@@ -10,7 +10,7 @@ from scipy.interpolate import griddata, interp1d
 from scipy.interpolate import LinearNDInterpolator
 import pickle
 from georadial import data_gridding
-
+import matplotlib.patches as mpatches
 from math import floor, log10
 
 def sci_notation(num, decimal_digits=2, precision=None, exponent=None):
@@ -50,7 +50,7 @@ def get_image(target_name, folder_image):
         return None
 
     hdul = fits.open(image_file )
-    image =  np.flip(hdul[0].data[0][0], axis=1)
+    image = np.flip(hdul[0].data[0][0], axis=1)# * 4/3
     hdul.close()
     return image
 
@@ -95,8 +95,24 @@ def make_interpolated_deprojected_image(f, x_coord, y_coord, cosi, pa):
     yy3_new =  -xx2_new * np.sin(pa) + yy2_new * np.cos(pa)
     imsize = len(x_coord)
     image_out = f(xx3_new, yy3_new)#np.zeros((imsize, imsize))
-
     return image_out, xx_new, yy_new
+
+def make_polar_rad_interpolated_image(f, r_1d, polar_1d):
+
+    rr_new, polar_new = np.meshgrid(r_1d, polar_1d)
+    xx = rr_new * np.cos(polar_new)
+    yy = rr_new * np.sin(polar_new)
+    image_out = f(xx, yy)
+    return image_out
+
+def make_sym_antisym_geoimage(f, x, y):
+
+    xx, yy = np.meshgrid(x, y)
+    image_sym = 0.5 * (f(xx, yy) + f(xx, -yy))
+    image_antisym = 0.5 * (f(xx, yy) - f(xx, -yy))
+    return image_sym, image_antisym
+
+
 
 def make_interpolated_pickle(pickle_name, res, dx_original_image):
 
@@ -788,8 +804,8 @@ def plotter_1d_array(target_name, folder_raw, folder_res, folder_mcmc, folder_fi
     return None
 
 
-def plotter_images_new(target_name, folder_images, folder_fig,  \
-     max_std_lw=5, max_std_up=5,  dx_image = 0.006,  xlim_image = 1, titles = [""],  cmap = "jet"):
+def plotter_images_res_and_raw(target_name, folder_images, folder_fig,  \
+     max_std_lw=5, max_std_up=5,  vlim = None,  dx_image = 0.006,  xlim_image = 1, titles = [""],  cmap = "jet"):
     """
     Plotting image, residual, deprojected residual, & zoom deprojected residual. 
 
@@ -816,8 +832,73 @@ def plotter_images_new(target_name, folder_images, folder_fig,  \
         res = get_image(target_name, folder_images[num_now])
         nx,_  = np.shape(res)
         interp_ext = dx_image * nx * 0.5
-        extent_for_deprojected=[interp_ext,-interp_ext,interp_ext,-interp_ext]
+        extent_for_deprojected=[-interp_ext,+interp_ext,interp_ext,-interp_ext]
         std = np.std(res)
+
+        bmaj, bmin, bpa, beam_area = compute_beamarea_from_fits(os.path.join(folder_images[num_now],"image_%s.fits" % target_name ))
+
+        ax_now.set_xlim(xlim_image, -xlim_image)
+        ax_now.set_ylim(-xlim_image, xlim_image)
+        if num_now ==0:
+            ax_now.set_xlabel("$\Delta x$ [arcsec]")
+            ax_now.set_ylabel("$\Delta y$ [arcsec]")
+        else:
+            ax_now.set_xticks([])
+            ax_now.set_yticks([])            
+        ax_now.set_title(titles[num_now])
+        if num_now ==0:
+            z1 = ax_now.imshow(np.arcsinh(res*1500),  extent = extent_for_deprojected, cmap =  "inferno" )
+        else:
+            z1 = ax_now.imshow(res, vmin = vlim[0], vmax = vlim[1], extent = extent_for_deprojected, cmap =  cmap )
+            if num_now==ny_image-1:
+                cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+                cbar = plt.colorbar(z1,cax=cax1, label = "Intensity [Jy/beam]")
+                #cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+                #cbar.ax.set_yticklabels(["-%d" % max_std_lw, '0', "%d" % max_std_up])    
+            patch = mpatches.Ellipse([0.8 * xlim_image, -0.8 * xlim_image], float(bmaj), float(bmin), 90-float(bpa), fc='none', ls='solid', ec='k', lw=2.) 
+            ax_now.add_patch(patch)
+            print(bmaj, bmin)
+
+    plt.savefig(os.path.join(folder_fig, "%s.pdf" % target_name), 
+               bbox_inches='tight')    
+    plt.show()
+    return None
+
+    return None
+
+def plotter_images_new(target_name, folder_images, folder_fig,  \
+     max_std_lw=5, max_std_up=5, vlim = None, dx_image = 0.006,  xlim_image = 1, titles = [""],  cmap = "jet"):
+    """
+    Plotting image, residual, deprojected residual, & zoom deprojected residual. 
+
+    Params:
+        target_name: target_name for target
+        folder_images: folders for images (os.path.join(folder_res,"image_%s.fits" % target_name )
+        folder_fig: folder for output fig
+        max_std_lw, max_std_up: lower, upper bounds for plots 
+        dx_image: pixel scale for image
+        xlim_image: x-range for image
+        titles: array for titles
+        cmap: type of color map
+    Return:
+        None
+    """
+    ny_image = len(folder_images)
+    nx_image = 1
+
+    ## Plot
+    fig, axs = plt.subplots(nx_image, ny_image, figsize=(10 * ny_image, 10 * nx_image))
+    for num_now in range(np.max([nx_image,ny_image])):
+        ax_now = axs[num_now]
+        divider1 = make_axes_locatable(ax_now)  
+        res = get_image(target_name, folder_images[num_now])
+        nx,_  = np.shape(res)
+        interp_ext = dx_image * nx * 0.5
+        extent_for_deprojected=[-interp_ext,+interp_ext,interp_ext,-interp_ext]
+        std = np.std(res)
+
+        bmaj, bmin, bpa, beam_area = compute_beamarea_from_fits(os.path.join(folder_images[num_now],"image_%s.fits" % target_name ))
+
         ax_now.set_xlim(xlim_image, -xlim_image)
         ax_now.set_ylim(-xlim_image, xlim_image)
         if num_now ==0:
@@ -827,10 +908,23 @@ def plotter_images_new(target_name, folder_images, folder_fig,  \
             ax_now.set_xticks([])
             ax_now.set_yticks([])            
         ax_now.set_title(titles[num_now])
-        z1 = ax_now.imshow(res, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap =  cmap )
-        cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
-        cbar = plt.colorbar(z1,cax=cax1, ticks=[-max_std_lw * std , 0, max_std_up* std], label = "residual S/N")
-        cbar.ax.set_yticklabels(["-%d" % max_std_lw, '0', "%d" % max_std_up])           
+
+        if vlim is None:
+            z1 = ax_now.imshow(res, vmin = -max_std_lw * std , vmax = max_std_up* std, extent = extent_for_deprojected, cmap =  cmap )
+            if  num_now== ny_image-1:
+                cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+                cbar = plt.colorbar(z1,cax=cax1, ticks=[-max_std_lw * std , 0, max_std_up* std], label = "residual S/N")
+                cbar.ax.set_yticklabels(["-%d" % max_std_lw, '0', "%d" % max_std_up])    
+        else:
+            z1 = ax_now.imshow(res, vmin = vlim[0], vmax = vlim[1], extent = extent_for_deprojected, cmap =  cmap )
+            if  num_now== ny_image-1:
+                cax1 = divider1.append_axes("right", size="5%", pad=0.1) 
+                cbar = plt.colorbar(z1,cax=cax1, label="Intensity [Jy/beam]")
+
+        patch = mpatches.Ellipse([0.8 * xlim_image, -0.8 * xlim_image], float(bmaj), float(bmin), 90-float(bpa), fc='none', ls='solid', ec='k', lw=2.) 
+        ax_now.add_patch(patch)
+        print(bmaj, bmin)
+
     plt.savefig(os.path.join(folder_fig, "%s.pdf" % target_name), 
                bbox_inches='tight')    
     plt.show()
