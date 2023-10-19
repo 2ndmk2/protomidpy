@@ -1,6 +1,6 @@
-import numpy as np
-from georadial import hankel
-from georadial import covariance
+import jax.numpy as np
+from georadial_jax import hankel
+from georadial_jax import covariance
 ARCSEC_TO_RAD= 1/206265.0
 
 def return_log_det(K_cov_inv):
@@ -106,7 +106,7 @@ def evidence_for_prob(theta, r_dist,  H_mat, q_dist_model, H_mat_model, d,  sigm
     logdet_cov = return_log_det(K_cov_inv)
     last_term = V_A_minus1_d.T@ mat_inside_inv @ V_A_minus1_d 
     log_evidence = - 0.5 * logdet_mat_inside - 0.5 * logdet_cov + 0.5 * last_term
-    return log_evidence , - 0.5 * logdet_mat_inside, - 0.5 * logdet_cov, 0.5 * last_term
+    return log_evidence 
 
 def logp_for_emcee_two(theta, cov, r_dist, para_prior_dic, q_dist_model, H_mat_model, \
     H_mat, V_A_minus1_U, V_A_minus1_d, pa_assumed=0, cosi_assumed=0, delta_x_assumed =0, delta_y_assumed =0):
@@ -267,7 +267,7 @@ def log_probability_geo_for_emcee(theta, N_d, r_dist, u_d, v_d, vis_d, sigma_d, 
     delta_x = theta[4] * ARCSEC_TO_RAD
     delta_y = theta[5]* ARCSEC_TO_RAD
     H_mat = hankel.make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos,  dpix, qmax)
-    log_evidence , test1, test2, test3 = evidence_for_prob(theta, r_dist, H_mat, q_dist_model, \
+    log_evidence= evidence_for_prob(theta, r_dist, H_mat, q_dist_model, \
         H_mat_model,  vis_d, sigma_d, cov = cov)
     print(log_evidence, theta)
     log_pos = lp + log_evidence

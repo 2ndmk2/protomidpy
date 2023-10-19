@@ -1,5 +1,7 @@
-import numpy as np
-from scipy.special import j0, j1, jn_zeros, jv
+import jax.numpy as np
+from georadial_jax.j1_jax import j1_jax
+from georadial_jax.j0_jax import j0_jax
+from scipy.special import jn_zeros 
 ARCSEC_TO_RAD= 1/206265.0
 
 def diag_multi(diag_sigma, mat):
@@ -44,8 +46,6 @@ def hankel_precomp(R_out, nrad, dpix, u_d, v_d, d, sigma_d, cosi, pa, delta_x, d
     V_A_minus1_d = H_mat.T@(sigma_d*d)
     return H_mat , V_A_minus1_U , V_A_minus1_d
 
-
-
 def make_2d_mat_for_dist(r_arr):
     r_pos_tile = np.tile(r_arr,(len(r_arr),1)) 
     r_dist = ((r_pos_tile - r_pos_tile.T)**2)**0.5
@@ -58,14 +58,13 @@ def make_hankel_matrix_kataware(R_out, N, dpix):
     j_nk, j_nN = j_nk[:-1], j_nk[-1]
     r_pos =2 * np.pi *  R_out * j_nk/j_nN
     factor = ( 1/ARCSEC_TO_RAD**2) * 4 * np.pi * R_out**2 / (j_nN**2)
-    scale_factor = 1/(j1(j_nk) ** 2)
-    q_max =j_nN /(2 * np.pi * R_out)
+    scale_factor = 1/(j1_jax(j_nk) ** 2)
     scale_all = factor * scale_factor
     return  scale_all, r_pos
 
 def make_hankel_matrix_from_kataware(q, scale_all, r_pos, q_max, cosi):
-    H_mat = scale_all * j0(np.outer(q,r_pos))
-    H_mat[q>q_max] = 0
+    H_mat = scale_all * j0_jax(np.outer(q,r_pos))
+    #H_mat[q>q_max] = 0
     return cosi * H_mat
 
 def make_hankel_matrix(q, R_out, N, cosi):
@@ -74,14 +73,14 @@ def make_hankel_matrix(q, R_out, N, cosi):
     j_nk, j_nN = j_nk[:-1], j_nk[-1]
     r_pos = R_out * j_nk/j_nN
     factor = ( 1/ARCSEC_TO_RAD**2) * 4 * np.pi * R_out**2 / (j_nN**2)
-    scale_factor = 1/(j1(j_nk) ** 2)
+    scale_factor = 1/(j1_jax(j_nk) ** 2)
     q_max =j_nN /(2 * np.pi * R_out)
-    H_mat = factor * scale_factor * j0(np.outer(q, 2 * np.pi * r_pos))
-    H_mat[q>q_max] = 0
+    H_mat = factor * scale_factor * j0_jax(np.outer(q, 2 * np.pi * r_pos))
+    #H_mat[q>q_max] = 0
     return cosi * H_mat
 
 
-def make_hankel_wt_fixed_q(q_dist, R_out, N, factor_all, r_pos, dpix,q_max):
+def make_hankel_wt_fixed_q(q_dist, R_out, N, factor_all, r_pos, dpix, q_max):
     H_mat = make_hankel_matrix_from_kataware(q_dist,factor_all, r_pos, q_max, 1)
     H_mat_all = np.concatenate([H_mat, np.zeros(np.shape(H_mat))])
     return H_mat_all

@@ -1,4 +1,4 @@
-import numpy as np
+import jax.numpy as np
 
 ARCSEC_TO_RAD= 1/206265.0
 
