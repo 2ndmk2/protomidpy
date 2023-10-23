@@ -1,7 +1,8 @@
 import jax.numpy as np
 from georadial_jax.j1_jax import j1_jax
 from georadial_jax.j0_jax import j0_jax
-from scipy.special import jn_zeros 
+from georadial_jax.j0zeros_jax import J0ZEROS
+#from scipy.special import jn_zeros 
 ARCSEC_TO_RAD= 1/206265.0
 
 def diag_multi(diag_sigma, mat):
@@ -19,7 +20,7 @@ def make_collocation_points(R_out, N):
         q_max (float): Maximum visibility distance
     """
 
-    j_nk = jn_zeros(0, N + 1)
+    j_nk = J0ZEROS[:N+1]
     j_nk, j_nN = j_nk[:-1], j_nk[-1]
     r_n = R_out * j_nk/j_nN
     q_n = j_nk/(2 * np.pi * R_out )
@@ -53,8 +54,8 @@ def make_2d_mat_for_dist(r_arr):
 
 
 def make_hankel_matrix_kataware(R_out, N, dpix):
-    j_nplus = jn_zeros(0, N+1)
-    j_nk = jn_zeros(0, N + 1)
+    j_nplus = J0ZEROS[:N+1]
+    j_nk = J0ZEROS[:N+1]
     j_nk, j_nN = j_nk[:-1], j_nk[-1]
     r_pos =2 * np.pi *  R_out * j_nk/j_nN
     factor = ( 1/ARCSEC_TO_RAD**2) * 4 * np.pi * R_out**2 / (j_nN**2)
@@ -64,19 +65,25 @@ def make_hankel_matrix_kataware(R_out, N, dpix):
 
 def make_hankel_matrix_from_kataware(q, scale_all, r_pos, q_max, cosi):
     H_mat = scale_all * j0_jax(np.outer(q,r_pos))
-    #H_mat[q>q_max] = 0
+    repeated_q = np.tile(q, (len(H_mat[0]), 1))
+    qmax_flag  = np.where(repeated_q >q_max, 0, 1)
+    qmax_flag = qmax_flag.T
+    H_mat = H_mat * qmax_flag    
     return cosi * H_mat
 
 def make_hankel_matrix(q, R_out, N, cosi):
-    j_nplus = jn_zeros(0, N+1)
-    j_nk = jn_zeros(0, N + 1)
+    j_nplus = J0ZEROS[:N+1]
+    j_nk =J0ZEROS[:N+1]
     j_nk, j_nN = j_nk[:-1], j_nk[-1]
     r_pos = R_out * j_nk/j_nN
     factor = ( 1/ARCSEC_TO_RAD**2) * 4 * np.pi * R_out**2 / (j_nN**2)
     scale_factor = 1/(j1_jax(j_nk) ** 2)
     q_max =j_nN /(2 * np.pi * R_out)
     H_mat = factor * scale_factor * j0_jax(np.outer(q, 2 * np.pi * r_pos))
-    #H_mat[q>q_max] = 0
+    repeated_q = np.tile(q, (len(H_mat[0]), 1))
+    qmax_flag  = np.where(repeated_q >q_max, 0, 1)
+    qmax_flag = qmax_flag.T
+    H_mat = H_mat * qmax_flag
     return cosi * H_mat
 
 
