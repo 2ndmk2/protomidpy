@@ -14,7 +14,7 @@ For developers,
 ## Prerequisites
 - astropy, emcee, corner, matplotlib, numpy, scipy, pandas, (Jupyter notebook)
 
-## Usage
+## Usage w/ test data
 
 ### 1) MCMC run (sampling from g($\theta,g|d$))
 1. Download test data from https://github.com/2ndmk2/dsharp_averaged_data
