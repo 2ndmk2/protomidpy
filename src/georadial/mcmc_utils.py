@@ -1,6 +1,5 @@
 import numpy as np
-from georadial import hankel
-from georadial import covariance
+from protomidpy import hankel
 ARCSEC_TO_RAD= 1/206265.0
 
 def obs_model_comparison(I_model, u_d, v_d, theta, d_data, R_out, N, dpix):

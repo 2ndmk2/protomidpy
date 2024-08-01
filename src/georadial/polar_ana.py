@@ -9,7 +9,7 @@ from scipy import interpolate
 from scipy.interpolate import griddata, interp1d
 from scipy.interpolate import LinearNDInterpolator
 import pickle
-from georadial import data_gridding
+from protomidpy import data_gridding
 import matplotlib.patches as mpatches
 from math import floor, log10
 

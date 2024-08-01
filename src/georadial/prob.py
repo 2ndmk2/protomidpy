@@ -1,6 +1,6 @@
 import numpy as np
-from georadial import hankel
-from georadial import covariance
+from protomidpy import hankel
+from protomidpyl import covariance
 ARCSEC_TO_RAD= 1/206265.0
 
 def return_log_det(K_cov_inv):

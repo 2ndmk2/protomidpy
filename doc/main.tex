@@ -1,0 +1,281 @@
+\documentclass{report}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bm}
+\usepackage{geometry}
+\usepackage{natbib}
+\bibliographystyle{aasjournal}
+\usepackage{graphicx}	
+\geometry{a4paper, margin=2.5cm}
+
+\hypersetup{
+    colorlinks=true,
+    citecolor=blue, 
+    linkcolor=black,
+    pdfborder={0 0 0}  % 赤枠を非表示にする
+}
+
+
+\makeatletter
+\let\jnl@style=\rm
+\def\ref@jnl#1{{\jnl@style#1}}
+
+\def\aj{\ref@jnl{AJ}}                   % Astronomical Journal
+\def\actaa{\ref@jnl{Acta Astron.}}      % Acta Astronomica
+\def\araa{\ref@jnl{ARA\&A}}             % Annual Review of Astron and Astrophys
+\def\apj{\ref@jnl{ApJ}}                 % Astrophysical Journal
+\def\apjl{\ref@jnl{ApJ}}                % Astrophysical Journal, Letters
+\def\apjs{\ref@jnl{ApJS}}               % Astrophysical Journal, Supplement
+\def\ao{\ref@jnl{Appl.~Opt.}}           % Applied Optics
+\def\apss{\ref@jnl{Ap\&SS}}             % Astrophysics and Space Science
+\def\aap{\ref@jnl{A\&A}}                % Astronomy and Astrophysics
+\def\aapr{\ref@jnl{A\&A~Rev.}}          % Astronomy and Astrophysics Reviews
+\def\aaps{\ref@jnl{A\&AS}}              % Astronomy and Astrophysics, Supplement
+\def\azh{\ref@jnl{AZh}}                 % Astronomicheskii Zhurnal
+\def\baas{\ref@jnl{BAAS}}               % Bulletin of the AAS
+\def\bac{\ref@jnl{Bull. astr. Inst. Czechosl.}}
+                % Bulletin of the Astronomical Institutes of Czechoslovakia 
+\def\caa{\ref@jnl{Chinese Astron. Astrophys.}}
+                % Chinese Astronomy and Astrophysics
+\def\cjaa{\ref@jnl{Chinese J. Astron. Astrophys.}}
+                % Chinese Journal of Astronomy and Astrophysics
+\def\icarus{\ref@jnl{Icarus}}           % Icarus
+\def\jcap{\ref@jnl{J. Cosmology Astropart. Phys.}}
+                % Journal of Cosmology and Astroparticle Physics
+\def\jrasc{\ref@jnl{JRASC}}             % Journal of the RAS of Canada
+\def\memras{\ref@jnl{MmRAS}}            % Memoirs of the RAS
+\def\mnras{\ref@jnl{MNRAS}}             % Monthly Notices of the RAS
+\def\na{\ref@jnl{New A}}                % New Astronomy
+\def\nar{\ref@jnl{New A Rev.}}          % New Astronomy Review
+\def\pra{\ref@jnl{Phys.~Rev.~A}}        % Physical Review A: General Physics
+\def\prb{\ref@jnl{Phys.~Rev.~B}}        % Physical Review B: Solid State
+\def\prc{\ref@jnl{Phys.~Rev.~C}}        % Physical Review C
+\def\prd{\ref@jnl{Phys.~Rev.~D}}        % Physical Review D
+\def\pre{\ref@jnl{Phys.~Rev.~E}}        % Physical Review E
+\def\prl{\ref@jnl{Phys.~Rev.~Lett.}}    % Physical Review Letters
+\def\pasa{\ref@jnl{PASA}}               % Publications of the Astron. Soc. of Australia
+\def\pasp{\ref@jnl{PASP}}               % Publications of the ASP
+\def\pasj{\ref@jnl{PASJ}}               % Publications of the ASJ
+\def\rmxaa{\ref@jnl{Rev. Mexicana Astron. Astrofis.}}%
+                % Revista Mexicana de Astronomia y Astrofisica
+\def\qjras{\ref@jnl{QJRAS}}             % Quarterly Journal of the RAS
+\def\skytel{\ref@jnl{S\&T}}             % Sky and Telescope
+\def\solphys{\ref@jnl{Sol.~Phys.}}      % Solar Physics
+\def\sovast{\ref@jnl{Soviet~Ast.}}      % Soviet Astronomy
+\def\ssr{\ref@jnl{Space~Sci.~Rev.}}     % Space Science Reviews
+\def\zap{\ref@jnl{ZAp}}                 % Zeitschrift fuer Astrophysik
+\def\nat{\ref@jnl{Nature}}              % Nature
+\def\iaucirc{\ref@jnl{IAU~Circ.}}       % IAU Cirulars
+\def\aplett{\ref@jnl{Astrophys.~Lett.}} % Astrophysics Letters
+\def\apspr{\ref@jnl{Astrophys.~Space~Phys.~Res.}}
+                % Astrophysics Space Physics Research
+\def\bain{\ref@jnl{Bull.~Astron.~Inst.~Netherlands}} 
+                % Bulletin Astronomical Institute of the Netherlands
+\def\fcp{\ref@jnl{Fund.~Cosmic~Phys.}}  % Fundamental Cosmic Physics
+\def\gca{\ref@jnl{Geochim.~Cosmochim.~Acta}}   % Geochimica Cosmochimica Acta
+\def\grl{\ref@jnl{Geophys.~Res.~Lett.}} % Geophysics Research Letters
+\def\jcp{\ref@jnl{J.~Chem.~Phys.}}      % Journal of Chemical Physics
+\def\jgr{\ref@jnl{J.~Geophys.~Res.}}    % Journal of Geophysics Research
+\def\jqsrt{\ref@jnl{J.~Quant.~Spec.~Radiat.~Transf.}}
+                % Journal of Quantitiative Spectroscopy and Radiative Transfer
+\def\memsai{\ref@jnl{Mem.~Soc.~Astron.~Italiana}}
+                % Mem. Societa Astronomica Italiana
+\def\nphysa{\ref@jnl{Nucl.~Phys.~A}}   % Nuclear Physics A
+\def\physrep{\ref@jnl{Phys.~Rep.}}   % Physics Reports
+\def\physscr{\ref@jnl{Phys.~Scr}}   % Physica Scripta
+\def\planss{\ref@jnl{Planet.~Space~Sci.}}   % Planetary Space Science
+\def\procspie{\ref@jnl{Proc.~SPIE}}   % Proceedings of the SPIE
+
+\let\astap=\aap
+\let\apjlett=\apjl
+\let\apjsupp=\apjs
+\let\applopt=\ao
+
+\title{{\it protomidpy}: Reconstruction of Protoplanetary Disk on Mid-plane in Python  (Version 0.0.0)}
+\author{Masataka Aizawa (\texttt{aizw.masa@gmail.com})}
+\date{Aug 1, 2024}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter{Overview}
+This code, {\it protomidpy} (Reconstruction of Protoplanetary Disk on Mid-plane in Python), implements an analytical framework for deriving the surface brightness profile and geometry of a geometrically-thin axisymmetric disc from interferometric observation of continuum emission, as proposed in \cite{aizawa2024}. A unique feature of this code is that it allows posterior sampling for all parameters, including the brightness distribution $\bm{a}$, geometric parameters $\bm{g}$, and hyperparameters for the Gaussian Process $\bm{\theta}$ (see Fig. \ref{fig:posterior_sim}):
+\begin{eqnarray}
+p(\bm{a}, \bm{g} , \bm{\theta} |\bm{d})
+\end{eqnarray}
+With the precise determination of these parameters, we can discuss faint signals possibly embedded in proto-planetary disks. Additionally, there is no need to tune hyperparameters, making the inference highly objective. This work can be seen as a natural extension of the previous work by \cite{jennings2020}, which solves for $\bm{a}$ while fixing $(\bm{g} , \bm{\theta})$. Their code (\textit{frank} or frankenstein) is available at \url{https://github.com/discsim/frank}.
+
+The installation and requirements are summarized in Chapter \ref{sec:reuired}. Parameters files, which are prepared in the \texttt{params} folder, are detailed in Chapter \ref{sec:prep_sec}. After setting the parameters, scripts can be run to realize the posterior distribution, as described in Chapter \ref{sec:run_script}.
+
+The author does not take any responsibility for any problems that the code may cause, so please use it at your own risk. If you have any questions or suggestions, please contact me (aizw.masa@gmail.com).
+%-----------------------------Figure Start---------------------------
+\begin{figure*}
+\begin{center}
+\includegraphics[width=0.48\linewidth]{./fig/recovered_sim_mcmc.pdf}
+\includegraphics[width=0.48\linewidth]{./fig/posterior_sim.pdf}
+\end{center}
+\caption{Example for posterior sampling for all of disc parameters. The figure is taken \protect \cite{aizawa2024} (Fig. 2 in the paper)}
+\label{fig:posterior_sim}
+\end{figure*}
+%-----------------------------Figure End------------------------------
+
+
+\chapter{Install \& Requirements \label{sec:reuired}}
+\section{Install}
+
+\begin{verbatim}
+pip install ./georadial
+\end{verbatim}
+
+\section{Requirements }
+\begin{itemize}
+    \item astropy
+    \item emcee
+    \item corner
+    \item matplotlib
+    \item numpy
+    \item scipy
+    \item pandas
+    \item Jupyter notebook
+\end{itemize}
+
+
+\chapter{Prepare for configuration files \label{sec:prep_sec}}
+
+\section{Format of input data \label{sec:format_data}}
+The data must be in form of ".npz" in numpy, and it needs to contain following items: 
+\begin{itemize}
+    \item \textbf{u\_obs}: Spatial frequency "u" [lambda]
+    \item \textbf{v\_obs}: Spatial frequency "v" [lambda]
+    \item \textbf{vis\_obs}: Visibility 
+    \item \textbf{wgt\_obs}: Weights 
+\end{itemize}
+Download test data from \url{https://github.com/2ndmk2/dsharp_averaged_data} for reference. 
+
+
+\section{Config files}
+We have three config files for running code. 
+\subsubsection{MCMC setting (example: params/mcmc\_config.dat) \label{sec:mcmc_config}}
+Parameters for emcee and model
+\begin{itemize}
+    \item \textbf{Nrad} \\
+    Number of radial points for model intensity
+    \item \textbf{Nbin} \\
+    Determine grid size for log-binning. Grid size is (2*Nbin+1, 2*Nbin+1). 
+    \item \textbf{Dpix}\\
+    Radial spacing for model [arcsec].\\ Outer disk radius is determined as $Rout = Nrad * Dpix$
+    \item \textbf{Nwalker}\\
+    Number of walkers for emcee
+    \item \textbf{Nchain}\\
+    Number of chains for emcee
+    \item \textbf{out\_folder}\\
+    Path to output folder
+\end{itemize}
+
+\subsubsection{Initial position for walkers (example: params/AS209\_paradic.dat)  \label{sec:initial_para}}
+Parameters determining initial positions for mcmc. They are randomly generated with uniform distribution [value-scatter/2, value+scatter/2].
+
+\subsubsection{Prior distribution (example: params/prior.dat)  \label{sec:prior_config}}
+Parameters for determining ranges of priors: 
+\begin{itemize}
+    \item {\bf Regularization parameter $\log \alpha$}\\
+    Uniform prior, $[\log_{10}\alpha_{\rm min}, \log_{10}\alpha_{\rm max}]$
+    \item {\bf Spatial paramter $\gamma$} \\ Uniform prior, [min\_scale [arcsec], max\_scale [arcsec]]
+    \item {\bf Central position for disk} \\ 
+    Uniform prior,  [-delta\_pos [arcsec], delta\_pos [arcsec]]
+\end{itemize}
+
+
+
+\chapter{Run scripts \label{sec:run_script}}
+\section{Run MCMC (example: tests/run\_sampling.py)}
+\subsection{Overview}
+
+With {\it emcee} \citep{2013PASP..125..306F}, we take samples from posterior distribution for $ p(\bm{g} , \bm{\theta}|\bm{d})$ given as: 
+\begin{eqnarray}
+   p(\bm{g} , \bm{\theta}|\bm{d}) &\propto&  \mathcal{N}(\bm{d} \mid \bm{0}, \bar{\bm{\Sigma}}_{d} +   \bar{\bm{H}} \bm{\Sigma}_{a} \bar{\bm{H}}^{T}) p(\bm{g} , \bm{\theta}), 
+\end{eqnarray}
+
+\subsection{Example command}
+
+\begin{verbatim}
+python run_sampling.py --n_process 4 --visfile ./vis_data/
+AS209_continuum_averaged.vis.npz --config ./paras/mcmc_config.dat 
+--initial_para ./paras/AS209_paradic.dat --prior ./paras/prior.dat 
+
+
+\end{verbatim}
+
+The options are given as follows: 
+    \begin{itemize}
+        \item \textbf{n\_process}: Number of CPU cores to be used in emcee.
+        \item \textbf{visfile}: Path to visibility file (\ref{sec:format_data})
+        \item \textbf{config}: path to mcmc config file (\ref{sec:mcmc_config}). 
+        \item \textbf{initial para}: path to mcmc config file (\ref{sec:initial_para}). 
+        \item \textbf{prior}: path to mcmc config file (\ref{sec:prior_config}). 
+    \end{itemize}
+
+
+
+\section{ Postprocess Calculation  (example: tests/model\_calc.py)}
+
+\subsection{Overview}
+Using samples from $p(\bm{g} , \bm{\theta} \mid \bm{d})$, we take sample from full posterior, 
+\begin{eqnarray}
+  p(\bm{a}, \bm{g} , \bm{\theta} |\bm{d})=p(\bm{a}|\bm{d}, \bm{g} , \bm{\theta}) p(\bm{g} , \bm{\theta} |d), 
+\end{eqnarray}
+and model visibilities: 
+\begin{eqnarray}
+\left(\begin{array}{c}
+    \bm{V}_{\rm real} \\
+    \bm{V}_{\rm imag} 
+\end{array}\right)
+= 
+\left(\begin{array}{cc}
+ \bm{C}_{\rm real}\bm{H'} \\
+ \bm{C}_{\rm imag}\bm{H'} \\
+\end{array}\right)
+ \bm{a}, \label{eq:linear_inclined}
+\end{eqnarray} 
+where $\bm{H'}$, $\bm{C}_{\rm real}$, and $\bm{C}_{\rm imag}$ are defined as follows: 
+\begin{eqnarray}
+    \{\bm{H'}\}_{j,k} &=&  \displaystyle \frac{4 \pi R_{\rm out}^{2}}{j_{0( N+1)}^{2} J_{1}^{2}(j_{0k})} J_{0} \left(2 \pi q_{j} r_{k} \right),  \\
+  \{\bm{C}_{\rm real}\}_{j, k} &=& |\cos i| \cos(-2\pi (\Delta x_{\rm cen} u_{j} + \Delta y_{\rm cen} v_{j})) \delta_{j,k}, \nonumber \\ \\ 
+ \{ \bm{C}_{\rm imag}\}_{j, k} &=&  |\cos i| \sin(-2\pi (\Delta x_{\rm cen} u_{j} + \Delta y_{\rm cen} v_{j})) \delta_{j,k}. \nonumber \\ 
+\end{eqnarray} 
+
+
+\subsection{Example command}
+
+\begin{verbatim}
+python model_calc.py --n_sample_for_rad 20 --n_burnin 20000
+--visfile ./vis_data/AS209_continuum_averaged.vis.npz 
+--mcmc_result_file ./result/AS209_continuum_averaged.vis_mcmc.npz
+--initial_para ./paras/AS209_paradic.dat --prior ./paras/prior.dat 
+--out_file_for_model ./result/AS209_continuum_averagedmodel.npz
+\end{verbatim}
+
+The options are given as follows: 
+
+\begin{itemize}
+    \item \textbf{n\_sample\_for\_rad}: Number of samples for intensity profiles
+    \item \textbf{n\_burnin}: Number of Burnin samples
+    \item \textbf{visfile}: Path to visibility file
+    \item \textbf{mcmc\_result\_file}: Path to result file from \texttt{run\_sampling.py} 
+    \item \textbf{out\_file\_for\_model}: Path to output file 
+\end{itemize}
+
+\section{Check result (\texttt{tests/mcmc\_plotter.ipynb})}
+Run \texttt{mcmc\_plotter.ipynb} with Jupyter
+    \begin{itemize}
+        \item \textbf{samplefile}: Path to file for posterior sampling output from \texttt{run\_sampling.py}
+        \item \textbf{modelfile}: Path to postprocess result from \texttt{model\_calc.py}
+    \end{itemize}
+
+\bibliography{ref.bib}
+
+\end{document}

@@ -1,14 +1,6 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import emcee
-import corner 
-from georadial import data_gridding
-from scipy.stats import multivariate_normal
 from scipy.optimize import minimize, rosen, rosen_der
-from scipy.special import j0, j1, jn_zeros, jv
-import os 
-import glob
-import random
+
 
 ARCSEC_TO_RAD= 1/206265.0
 

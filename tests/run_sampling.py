@@ -7,15 +7,12 @@ from georadial import main
 from georadial import mcmc_utils
 from georadial import utils
 
-## python run_sampling.py --n_process 3 --config ./paras/mcmc_config.dat --initial_para ./paras/AS209_paradic.dat --prior ./paras/prior.dat --visfile ./vis_data/AS209_continuum_averaged.vis.npz
-
 parser = argparse.ArgumentParser() 
 parser.add_argument('--n_process', default=3)
 parser.add_argument('--config', default='./para/mcmc_config.dat')
 parser.add_argument('--initial_para', default='./para/AS209_paradic.dat')
 parser.add_argument('--prior', default='./para/prior.dat')
 parser.add_argument('--visfile', default='./vis_data/AS209_continuum_averaged.vis.npz')
-
 
 if __name__ == '__main__':
 

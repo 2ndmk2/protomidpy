@@ -1,7 +1,7 @@
-from georadial import sample
-from georadial import hankel
-from georadial import mcmc_utils
-from georadial import data_gridding
+from protomidpy import sample
+from protomidpy import hankel
+from protomidpy import mcmc_utils
+from protomidpy import data_gridding
 import matplotlib.pyplot as plt
 import os
 import corner

@@ -1,6 +1,6 @@
 import numpy as np
-from georadial import hankel
-from georadial import covariance
+from protomidpy import hankel
+from protomidpy import covariance
 
 def log_prior_geo(theta, para_prior_dic):
     """ Compute log prior

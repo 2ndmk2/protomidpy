@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import os
 from scipy import optimize
 
-from georadial.covariance import ARCSEC_TO_RAD
+from protomidpy.covariance import ARCSEC_TO_RAD
 
 
 

@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from georadial import hankel
+from protomidpy import hankel
 from scipy import interpolate
 
 

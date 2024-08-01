@@ -2,20 +2,12 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import emcee
-import corner 
-from georadial import data_gridding
-from georadial import covariance
-from georadial import hankel
-from georadial import mcmc_utils
-from georadial import utils
-from georadial import prob
-from georadial import plotter
-from georadial import sample
-from scipy.stats import multivariate_normal
-from scipy.optimize import minimize, rosen, rosen_der
+from protomidpy import data_gridding
+from protomidpy import hankel
+from protomidpy import mcmc_utils
+from protomidpy import prob
+from protomidpy import plotter
 import os 
-import glob
-import random
 
 ARCSEC_TO_RAD= 1/206265.0
 
@@ -154,10 +146,15 @@ def data_binning(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, para_d
     gridfile = os.path.join(out_dir, header_name_for_file+ "_grid.npz")
     np.savez(gridfile, u = u_grid_2d, v = v_grid_2d, vis = vis_grid_2d, noise = noise_grid_2d)
   
+def after_sampling(u, v, mcmc_para, nrad=300, dpix= 0.1 * ARCSEC_TO_RAD):
+    mcmc_result = np.load(mcmc_para)
+    sample = mcmc_result["sample"]
+    log_posterior = mcmc_result["log_prior"] + mcmc_result["log_likelihood"] 
+    sample_best = sample[:,np.argmax(log_posterior)]
 
 
 def sample_mcmc_full(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, para_dic_for_prior, para_dic_for_mcmc, header_name_for_file = "test", out_dir = "./", nrad=300, dpix= 0.1 * ARCSEC_TO_RAD, 
-    n_bin_log=200,  q_min_max_bin = [1e3, 1e7], file_for_prior = "", file_for_mcmc = "", pool =None):
+    n_bin_log=200,  q_min_max_bin = [1e3, 1e7], pool =None):
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -190,99 +187,4 @@ def sample_mcmc_full(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, pa
     if mcmc_plot:
         plotter.mcmc_plot(sample_out_name + ".npz", out_dir, header_name_for_file)
 
-def after_sampling(u, v, mcmc_para, nrad=300, dpix= 0.1 * ARCSEC_TO_RAD):
-    mcmc_result = np.load(mcmc_para)
-    sample = mcmc_result["sample"]
-    log_posterior = mcmc_result["log_prior"] + mcmc_result["log_likelihood"] 
-    sample_best = sample[:,np.argmax(log_posterior)]
 
-
-def main(cov_arr,  nu_arr, q_constrained_arr, nrad=30, dpix = None, MCMC_RUN=10000, NWALKER=32, \
-    only_sampling=True, SAMPLE_NUM=50, para_dic_for_prior={}, para_dic_for_mcmc={}, n_bin_linear=200, 
-    n_bin_log=200, MIN_BIN = 5,  
-    BIN_DATA_REPLACE =True, visfile = "./vis_data/test.npz", out_dir ="./out_dir", PA=0, COSI=0,\
-    pool = None, cov="RBF", JAX =False):
-
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-    R_out = nrad* dpix 
-    other_thetas = [cosi_assumed,  pa_assumed, delta_x_assumed, delta_y_assumed, 0]
-    gridfile = os.path.join(out_dir, header_name_for_file+ "grid.npz")
-    u_grid_1d, v_grid_1d, vis_grid_1d, noise_grid_1d, sigma_mat_1d, d_data = data_gridding.get_gridded_obs_data(gridfile, u_d, v_d, vis_d, wgt_d, n_bin_linear, n_bin_log, q_min_max_bin)
-    r_n, jn, qmax, q_n, H_mat_model, q_dist_2d_model, N_d, r_dist, d_A_minus1_d, logdet_for_sigma_d  = hankel.prepare(R_out, nrad,  d_data, sigma_mat_1d)
-
-    ## emcee
-    sample_out_name = os.path.join(out_dir, header_name_for_file + "chain_mfreq")
-    sample_out_name_npz = sample_out_name + ".npz"
-
-    if only_sampling == False:
-        initial_for_mcmc = mcmc_utils.make_initial_geo_offset(para_dic_for_mcmc, NWALKER, cov = cov)
-        n_w, n_para = np.shape(initial_for_mcmc)
-        dtype = [ ("log_likelihood", float), ("log_prior", float)]
-        factor_all, r_pos= hankel.make_hankel_matrix_kataware( R_out, nrad, dpix)
-        sampler = emcee.EnsembleSampler(NWALKER, n_para, prob.log_probability_geo_for_emcee, args=(N_d, r_dist,  u_grid_1d, v_grid_1d, \
-            d_data, sigma_mat_1d,  para_dic_for_prior, R_out, nrad, dpix, q_dist_2d_model, H_mat_model, factor_all, r_pos, cov), blobs_dtype=dtype,  pool=pool)
-        sampler.run_mcmc(initial_for_mcmc, MCMC_RUN, progress=True)
-        samples = sampler.get_chain(flat=True)
-        blobs = sampler.get_blobs()
-        np.savez(sample_out_name, sample = samples, log_prior =blobs["log_prior"], log_likelihood = blobs["log_likelihood"])
-        #return None
-
-    ## corner plot
-    mcmc_plot = True
-    if mcmc_plot:
-        plotter.mcmc_plot(sample_out_name_npz, out_dir, header_name_for_file)
-
-    ## flux plot
-    n_sample = 50000
-    result_mcmc = np.load(sample_out_name_npz)
-    sample = result_mcmc["sample"]
-    sample= sample[len(sample) - n_sample:]
-    sample_used = sample.T
-    nx, nd = np.shape(sample_used)
-    index_arr = np.arange(nd)
-    sample_num = SAMPLE_NUM
-    sample_list = np.array(random.sample(list(index_arr), sample_num))    
-    flux_plot = True
-    if flux_plot==True:
-        sample_mean_arr = []
-        spec_arr = []
-        for i in range(sample_num):
-            theta_now = sample_used[:,sample_list[i]]
-            print(i, theta_now)#theta_list)
-            sample_one, H_mat = sample.sample_radial_profile(r_dist, theta_now, u_grid_1d, v_grid_1d, R_out, \
-                nrad, dpix, d_data, sigma_mat_1d, q_dist_2d_model, H_mat_model, cov=cov)
-            plt.plot(r_n/ARCSEC_TO_RAD, sample_one, lw=0.1, color="k")
-            sample_mean_arr.append(sample_one)
-        sample_mean_arr = np.array(sample_mean_arr)
-        sample_mean = np.mean(sample_mean_arr, axis =0)
-        plt.xlabel("r distance (arcsec)", fontsize = 20)
-        plt.ylabel("Flux", fontsize = 20)
-        plt.tight_layout()
-        np.savez(os.path.join(out_dir, header_name_for_file +"radial"), r_pos = r_n/ARCSEC_TO_RAD, 
-            sample_arr = sample_mean_arr)
-        plt.savefig(os.path.join(out_dir, header_name_for_file +"r_dist_flux.png"), dpi=200)
-        plt.close()
-
-    ### visibility plot
-
-    for i in range(sample_num):
-        theta_test = sample_used[:,sample_list[i]]
-        sample_one, H_mat = sample.sample_radial_profile(r_dist, theta_test, u_grid_1d, v_grid_1d, R_out, \
-            nrad, dpix, d_data, sigma_mat_1d, q_dist_2d_model, H_mat_model, cov=cov)
-        H_mat, q_dist, d_real_mod, d_imag_mod, vis_model_real, vis_model_imag, u_mod, v_mod= mcmc_utils.obs_model_comparison(sample_one, u_grid_1d, v_grid_1d, theta_test, d_data, R_out, nrad, dpix)
-        arg_sort = np.argsort(q_dist)
-        plt.plot(q_dist[arg_sort], vis_model_real[arg_sort], lw=1, color="r")
-    
-    theta_test = sample_used[:,sample_list[0]]
-    H_mat, q_dist, d_real_mod, d_imag_mod, vis_model_real, vis_model_imag, u_mod, v_mod= mcmc_utils.obs_model_comparison(sample_one, u_grid_1d, v_grid_1d, theta_test, d_data, R_out, nrad, dpix)
-    q_model_extend = 10**(np.arange(4, 10, 0.01))
-    model_vis_extend  = model_for_vis(sample_one, q_model_extend , R_out, nrad, dpix, theta_test[2])
-    u_bin, vis_bin, mean_err_bin, err_bin = data_gridding.binradial(q_dist, d_real_mod, 300)
-    plt.scatter(u_bin, vis_bin,color="b", s=10, zorder=100, alpha = 0.5)
-    plt.errorbar(u_bin, vis_bin, yerr = mean_err_bin, color="b", fmt="o",  zorder=100, alpha = 0.5)
-    plt.tight_layout()
-    plt.xscale("log")
-    plt.xlim(10**6, 10**7)
-    plt.ylim(-0.005, 0.005)
-    plt.savefig(os.path.join(out_dir, header_name_for_file +"real_comp.png"), dpi=200)

@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy import interpolate
-from georadial import see_result
 import os
 import matplotlib.patches as patches
 

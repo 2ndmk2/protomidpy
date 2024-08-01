@@ -11,11 +11,10 @@ ARCSEC_TO_RAD= 1/206265.0
 
 ## Change here if needed!!!
 n_sample_for_rad = 20
-n_burnin = 20000
+n_burnin = 20000 
 mcmc_result_file = "./result/AS209_continuum_averaged.vis_mcmc.npz"
 visfile = "./vis_data/AS209_continuum_averaged.vis.npz" 
 out_file_for_model = "./result/AS209_continuum_averagedmodel.npz"
-
 
 ###
 
