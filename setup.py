@@ -5,9 +5,9 @@ import re
 from setuptools import find_packages, setup
 
 # PROJECT SPECIFIC
-NAME = "georad"
+NAME = "protomidpy"
 PACKAGES = find_packages(where="src")
-META_PATH = os.path.join("src", "georadial", "__init__.py")
+META_PATH = os.path.join("src", "protomidpy", "__init__.py")
 CLASSIFIERS = [
     "Programming Language :: Python",
 ]
