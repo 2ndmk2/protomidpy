@@ -103,7 +103,7 @@
 \tableofcontents
 
 \chapter{Overview}
-This code, {\it protomidpy} (Reconstruction of Protoplanetary Disk on Mid-plane in Python), implements an analytical framework for deriving the surface brightness profile and geometry of a geometrically-thin axisymmetric disc from interferometric observation of continuum emission, as proposed in \cite{aizawa2024}. A unique feature of this code is that it allows posterior sampling for all parameters, including the brightness distribution $\bm{a}$, geometric parameters $\bm{g}$, and hyperparameters for the Gaussian Process $\bm{\theta}$ (see Fig. \ref{fig:posterior_sim}):
+This code, {\it protomidpy} (Reconstruction of Protoplanetary Disk on Mid-plane in Python), implements an analytical framework for deriving surface brightness profile and geometry of a geometrically-thin axisymmetric disc from interferometric observation of continuum emission, as proposed in \cite{aizawa2024}. A unique feature of this code is that it allows posterior sampling for all parameters, including the brightness distribution $\bm{a}$, geometric parameters $\bm{g}$, and hyperparameters for the Gaussian Process $\bm{\theta}$ (see Fig. \ref{fig:posterior_sim}):
 \begin{eqnarray}
 p(\bm{a}, \bm{g} , \bm{\theta} |\bm{d})
 \end{eqnarray}
@@ -126,9 +126,9 @@ The author does not take any responsibility for any problems that the code may c
 
 \chapter{Install \& Requirements \label{sec:reuired}}
 \section{Install}
-
+After downloading the codes, you can install it by typing 
 \begin{verbatim}
-pip install ./georadial
+pip install ./protomidpy
 \end{verbatim}
 
 \section{Requirements }
@@ -158,8 +158,8 @@ Download test data from \url{https://github.com/2ndmk2/dsharp_averaged_data} for
 
 
 \section{Config files}
-We have three config files for running code. 
-\subsubsection{MCMC setting (example: params/mcmc\_config.dat) \label{sec:mcmc_config}}
+We have three config files. 
+\subsection{MCMC setting (example: params/mcmc\_config.dat) \label{sec:mcmc_config}}
 Parameters for emcee and model
 \begin{itemize}
     \item \textbf{Nrad} \\
@@ -176,10 +176,10 @@ Parameters for emcee and model
     Path to output folder
 \end{itemize}
 
-\subsubsection{Initial position for walkers (example: params/AS209\_paradic.dat)  \label{sec:initial_para}}
+\subsection{Initialize positions for walkers (example: params/AS209\_paradic.dat)  \label{sec:initial_para}}
 Parameters determining initial positions for mcmc. They are randomly generated with uniform distribution [value-scatter/2, value+scatter/2].
 
-\subsubsection{Prior distribution (example: params/prior.dat)  \label{sec:prior_config}}
+\subsection{Prior distribution (example: params/prior.dat)  \label{sec:prior_config}}
 Parameters for determining ranges of priors: 
 \begin{itemize}
     \item {\bf Regularization parameter $\log \alpha$}\\
@@ -192,7 +192,7 @@ Parameters for determining ranges of priors:
 
 
 \chapter{Run scripts \label{sec:run_script}}
-\section{Run MCMC (example: tests/run\_sampling.py)}
+\section{Run MCMC (example: tests/run\_sampling.py) \label{sec:mcmc_run}}
 \subsection{Overview}
 
 With {\it emcee} \citep{2013PASP..125..306F}, we take samples from posterior distribution for $ p(\bm{g} , \bm{\theta}|\bm{d})$ given as: 
@@ -264,12 +264,12 @@ The options are given as follows:
 \begin{itemize}
     \item \textbf{n\_sample\_for\_rad}: Number of samples for intensity profiles
     \item \textbf{n\_burnin}: Number of Burnin samples
-    \item \textbf{visfile}: Path to visibility file
-    \item \textbf{mcmc\_result\_file}: Path to result file from \texttt{run\_sampling.py} 
+    \item \textbf{visfile}: Path to visibility file (\ref{sec:format_data})
+    \item \textbf{mcmc\_result\_file}: Path to result file from \texttt{run\_sampling.py} (\ref{sec:mcmc_run})
     \item \textbf{out\_file\_for\_model}: Path to output file 
 \end{itemize}
 
-\section{Check result (\texttt{tests/mcmc\_plotter.ipynb})}
+\section{Check result (example: \texttt{tests/mcmc\_plotter.ipynb})}
 Run \texttt{mcmc\_plotter.ipynb} with Jupyter
     \begin{itemize}
         \item \textbf{samplefile}: Path to file for posterior sampling output from \texttt{run\_sampling.py}
