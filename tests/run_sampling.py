@@ -3,9 +3,9 @@ import os
 ARCSEC_TO_RAD= 1/206265.0
 os.environ["OMP_NUM_THREADS"] = "1"
 from multiprocessing import Pool, freeze_support
-from georadial import main
-from georadial import mcmc_utils
-from georadial import utils
+from protomidpy import main
+from protomidpy import mcmc_utils
+from protomidpy import utils
 
 parser = argparse.ArgumentParser() 
 parser.add_argument('--n_process', default=3)
