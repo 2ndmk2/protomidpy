@@ -3,5 +3,4 @@ Nbin 500
 Dpix 0.01
 Nwalker 32
 Nchain 1000
-cov RBF
 out_folder ./result

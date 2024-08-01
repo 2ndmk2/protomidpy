@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     ## Multi-proceessing for MCMC
     with Pool(processes=n_process) as pool:
-        main.sample_mcmc_full(u_d, v_d, vis_d, wgt_d, para_dic_for_mcmc_config["cov"], -1000,  para_dic_for_mcmc_config["Nwalker"], para_dic_for_mcmc_config["Nchain"], para_dic_for_mcmc_prior, para_dic_for_mcmc_initial, \
+        main.sample_mcmc_full(u_d, v_d, vis_d, wgt_d, "RBF", -1000,  para_dic_for_mcmc_config["Nwalker"], para_dic_for_mcmc_config["Nchain"], para_dic_for_mcmc_prior, para_dic_for_mcmc_initial, \
             header_name_for_file = header_name_for_file, out_dir = para_dic_for_mcmc_config["out_folder"], n_bin_log = para_dic_for_mcmc_config["Nbin"], \
             nrad=para_dic_for_mcmc_config["Nrad"], dpix= para_dic_for_mcmc_config["Dpix"]* ARCSEC_TO_RAD,  pool =pool)
 
