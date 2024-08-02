@@ -124,14 +124,12 @@ The author does not take any responsibility for any problems that the code may c
 %-----------------------------Figure End------------------------------
 
 
-\chapter{Install \& Requirements \label{sec:reuired}}
-\section{Install}
+\chapter{Install  \label{sec:reuired}}
 After downloading the codes, you can install it by typing 
 \begin{verbatim}
 pip install ./protomidpy
 \end{verbatim}
-
-\section{Requirements }
+The following  modules are required: 
 \begin{itemize}
     \item astropy
     \item emcee
@@ -141,10 +139,11 @@ pip install ./protomidpy
     \item scipy
     \item pandas
     \item Jupyter notebook
+    \item tqdm
 \end{itemize}
 
 
-\chapter{Prepare for configuration files \label{sec:prep_sec}}
+\chapter{Make configuration files \label{sec:prep_sec}}
 
 \section{Format of input data \label{sec:format_data}}
 The data must be in form of ".npz" in numpy, and it needs to contain following items: 
@@ -159,27 +158,31 @@ Download test data from \url{https://github.com/2ndmk2/dsharp_averaged_data} for
 
 \section{Config files}
 We have three config files. 
-\subsection{MCMC setting (example: params/mcmc\_config.dat) \label{sec:mcmc_config}}
+\subsection{MCMC setting (example: \texttt{params/mcmc\_config.dat}) \label{sec:mcmc_config}}
 Parameters for emcee and model
 \begin{itemize}
-    \item \textbf{Nrad} \\
+    \item \textbf{Nrad} (int) \\
     Number of radial points for model intensity
-    \item \textbf{Nbin} \\
+    \item \textbf{Nbin} (int)\\
     Determine grid size for log-binning. Grid size is (2*Nbin+1, 2*Nbin+1). 
-    \item \textbf{Dpix}\\
+    \item \textbf{Dpix} (float)\\
     Radial spacing for model [arcsec].\\ Outer disk radius is determined as $Rout = Nrad * Dpix$
-    \item \textbf{Nwalker}\\
+    \item \textbf{Nwalker}  (int)\\
     Number of walkers for emcee
-    \item \textbf{Nchain}\\
+    \item \textbf{Nchain  (int)}\\
     Number of chains for emcee
-    \item \textbf{out\_folder}\\
+    \item \textbf{Qmin}  (float)\\
+    Value determining lower boundary for log gridding. 
+    \item \textbf{Qmax} (float)\\
+    Value determining upper boundary for log gridding. 
+    \item \textbf{out\_folder} (str)\\
     Path to output folder
 \end{itemize}
 
-\subsection{Initialize positions for walkers (example: params/AS209\_paradic.dat)  \label{sec:initial_para}}
+\subsection{Initialize positions for walkers (example: \texttt{params/AS209\_paradic.dat})  \label{sec:initial_para}}
 Parameters determining initial positions for mcmc. They are randomly generated with uniform distribution [value-scatter/2, value+scatter/2].
 
-\subsection{Prior distribution (example: params/prior.dat)  \label{sec:prior_config}}
+\subsection{Prior distribution (example: \texttt{params/prior.dat})  \label{sec:prior_config}}
 Parameters for determining ranges of priors: 
 \begin{itemize}
     \item {\bf Regularization parameter $\log \alpha$}\\
@@ -192,7 +195,7 @@ Parameters for determining ranges of priors:
 
 
 \chapter{Run scripts \label{sec:run_script}}
-\section{Run MCMC (example: tests/run\_sampling.py) \label{sec:mcmc_run}}
+\section{Run MCMC (example: \texttt{tests/run\_sampling.py}) \label{sec:mcmc_run}}
 \subsection{Overview}
 
 With {\it emcee} \citep{2013PASP..125..306F}, we take samples from posterior distribution for $ p(\bm{g} , \bm{\theta}|\bm{d})$ given as: 
@@ -212,16 +215,34 @@ AS209_continuum_averaged.vis.npz --config ./paras/mcmc_config.dat
 
 The options are given as follows: 
     \begin{itemize}
-        \item \textbf{n\_process}: Number of CPU cores to be used in emcee.
-        \item \textbf{visfile}: Path to visibility file (\ref{sec:format_data})
-        \item \textbf{config}: path to mcmc config file (\ref{sec:mcmc_config}). 
-        \item \textbf{initial para}: path to mcmc config file (\ref{sec:initial_para}). 
-        \item \textbf{prior}: path to mcmc config file (\ref{sec:prior_config}). 
+        \item \textbf{n\_process} (int): \\ Number of CPU cores to be used in emcee.
+        \item \textbf{visfile} (str): \\ Path to visibility file (\ref{sec:format_data})
+        \item \textbf{config } (str):  \\ path to mcmc config file (\ref{sec:mcmc_config}). 
+        \item \textbf{initial para} (str): \\ path to mcmc config file (\ref{sec:initial_para}). 
+        \item \textbf{prior} (str):  \\ path to mcmc config file (\ref{sec:prior_config}). 
     \end{itemize}
 
+\subsection{Output}
+The name for output file is "./result/***\_mcmc.npz". The file includes the following item: 
+%
+
+\begin{itemize}
+    \item \textbf{sample} (numpy.array, [1, Nwalker*Nchain, 6]): \\ Sample array with size of  taken from posterior distribution. \\ 
+    The order for the parameters is 
+$(\gamma [{\rm arcsec}], \log_{10} \alpha, \cos {\rm i}, {\rm PA [rad]}, \delta_x{\rm cen}, \delta_y{\rm cen})$.    \item \textbf{log\_prior}: \\ Path to visibility file (\ref{sec:format_data})
+    \item \textbf{log\_prior} (numpy.array, [1,Nchain,  Nwalker]): \\ Prior probability. 
+    \item \textbf{log\_likelihood} (numpy.array, [1,Nchain,  Nwalker]): \\ Likelihood. 
+    \item \textbf{nrad} (int):\\  Number of radial points for model intensity. Same as Nrad.  
+    \item \textbf{dpix} (float):\\ Radial spacing for model [arcsec]. Same as Dpix.  
+    \item \textbf{n\_bin\_log} (int)::  \\ Determine grid size for log gridding. Same as Nbin. 
+    \item \textbf{qmin} (float): \\ Value determining lower boundary for log gridding. 
+    \item \textbf{qmax} (float):\\  Value determining upper boundary for log gridding. 
+    \item \textbf{cov} (str): Convariance name (default to "RBF"). 
+\end{itemize}
+    
 
 
-\section{ Postprocess Calculation  (example: tests/model\_calc.py)}
+\section{ Postprocess Calculation  (example: \texttt{tests/model\_calc.py)}}
 
 \subsection{Overview}
 Using samples from $p(\bm{g} , \bm{\theta} \mid \bm{d})$, we take sample from full posterior, 
@@ -262,15 +283,45 @@ python model_calc.py --n_sample_for_rad 20 --n_burnin 20000
 The options are given as follows: 
 
 \begin{itemize}
-    \item \textbf{n\_sample\_for\_rad}: Number of samples for intensity profiles
-    \item \textbf{n\_burnin}: Number of Burnin samples
-    \item \textbf{visfile}: Path to visibility file (\ref{sec:format_data})
-    \item \textbf{mcmc\_result\_file}: Path to result file from \texttt{run\_sampling.py} (\ref{sec:mcmc_run})
-    \item \textbf{out\_file\_for\_model}: Path to output file 
+    \item \textbf{n\_sample\_for\_rad} (int): Number of samples for intensity profiles
+    \item \textbf{n\_burnin} (int): Number of Burnin samples
+    \item \textbf{visfile} (str): Path to visibility file (\ref{sec:format_data})
+    \item \textbf{mcmc\_result\_file (str)}: Path to result file from \texttt{run\_sampling.py} (\ref{sec:mcmc_run})
+    \item \textbf{out\_file\_for\_model} (str): Path to output file 
 \end{itemize}
 
-\section{Check result (example: \texttt{tests/mcmc\_plotter.ipynb})}
-Run \texttt{mcmc\_plotter.ipynb} with Jupyter
+
+\subsection{Output}
+The name for output file is "./result/***model.npz". The file includes the following item: 
+
+
+\begin{itemize}
+    \item \textbf{r\_n}  (numpy.array, [Nrad]): \\ 
+    Radial positions  [arcsec] for model intensities 
+    \item \textbf{param\_map} (numpy.array, [6]): \\ 
+    MAP solution for parameters.
+    \item \textbf{params\_random\_selected} (numpy.array, [n\_sample\_for\_rad, 6]): \\ 
+    Randomly selected parameters with size of n\_sample\_for\_rad.
+    \item \textbf{flux\_map\_sample} (numpy.array, [200]): \\ 
+    Model intensity $\bm{a}^{\dagger}$  [Jy arcsec$^{-2}$]  taken from posterior assuming Maximum a posteriori estimation (MAP) solution for non-linear parameters $\bm{g}_{\rm MAP}, \bm{\theta}_{\rm MAP}$, which are taken from the result of MCMC. 
+    \item \textbf{flux\_random\_samples} (numpy.array, [n\_sample\_for\_rad, Nrad]): \\ 
+    Randomly selected model intensities [Jy arcsec$^{-2}$] with size of n\_sample\_for\_rad.
+    \item \textbf{vis\_model\_undeprojected} (numpy.array, [Nvis]): \\ 
+    Undeprojected visibility models [Jy] with size of Nvis assuming $(\bm{a}^{\dagger}, \bm{g}_{\rm MAP}, \bm{\theta}_{\rm MAP})$.
+    \item \textbf{residual\_undeprojected} (numpy.array, [Nvis]): \\ 
+    Undeprojected residual visibilties  [Jy] with size of Nvis   assuming $(\bm{a}^{\dagger}, \bm{g}_{\rm MAP}, \bm{\theta}_{\rm MAP})$.
+    \item \textbf{qdist\_deprojected} (numpy.array, [Nvis]): \\ 
+    Deprojected spatial frequency distance $q$ [lambda] with size of Nvis  assuming $(\bm{a}^{\dagger}, \bm{g}_{\rm MAP}, \bm{\theta}_{\rm MAP})$
+    \item \textbf{vis\_model\_deprojected} (numpy.array, [Nvis]): \\ 
+    Deprojected visibility models [Jy] with size of Nvis  assuming $(\bm{a}^{\dagger}, \bm{g}_{\rm MAP}, \bm{\theta}_{\rm MAP})$. 
+    \item \textbf{data\_deprojected} (numpy.array, [Nvis]): \\ 
+    Deprojected data  [Jy] with size of Nvis assuming $(\bm{a}^{\dagger}, \bm{g}_{\rm MAP}, \bm{\theta}_{\rm MAP})$. 
+    \item \textbf{data\_weights} (numpy.array, [Nvis]): \\ 
+    Weights  [Jy$^{-2}$] for the deprojected data with size of Nvis  assuming $(\bm{a}^{\dagger}, \bm{g}_{\rm MAP}, \bm{\theta}_{\rm MAP})$. 
+\end{itemize}
+    
+\section{See result (example: \texttt{tests/mcmc\_plotter.ipynb})}
+Run \texttt{mcmc\_plotter.ipynb} with Jupyter. We use following variables to specity files to be loaded. 
     \begin{itemize}
         \item \textbf{samplefile}: Path to file for posterior sampling output from \texttt{run\_sampling.py}
         \item \textbf{modelfile}: Path to postprocess result from \texttt{model\_calc.py}
