@@ -6,3 +6,7 @@ https://academic.oup.com/mnras/article/532/2/1361/7699107
 
 ## doc 
 The manual is found in /doc/doc_protomidpy.pdf
+
+
+## Author
+Masataka Aizawa (aizw.nasa@gmail.com)
