@@ -9,4 +9,4 @@ The manual is found in /doc/doc_protomidpy.pdf
 
 
 ## Author
-Masataka Aizawa (aizw.nasa@gmail.com)
+Masataka Aizawa (aizw.masa@gmail.com)
