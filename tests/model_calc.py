@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
-from georadial import data_gridding
-from georadial import sample
-from georadial import utils
-from georadial import mcmc_utils
-from georadial import hankel
+from protomidpy import data_gridding
+from protomidpy import sample
+from protomidpy import utils
+from protomidpy import mcmc_utils
+from protomidpy import hankel
 import os
 ARCSEC_TO_RAD= 1/206265.0
 

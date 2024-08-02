@@ -11,7 +11,7 @@ META_PATH = os.path.join("src", "protomidpy", "__init__.py")
 CLASSIFIERS = [
     "Programming Language :: Python",
 ]
-INSTALL_REQUIRES = ['numpy',  "astropy", "emcee","corner", "scipy", "matplotlib", "pandas"]
+INSTALL_REQUIRES = ['numpy',  "astropy", "emcee","corner", "scipy", "matplotlib", "pandas" ,"tqdm"]
 # END PROJECT SPECIFIC
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -33,7 +33,7 @@ def find_meta(meta, meta_file=read(META_PATH)):
 if __name__ == "__main__":
     setup(
         name=NAME,
-        version='0.0.1',
+        version='0.0.0',
         author=find_meta("author"),
         author_email=find_meta("email"),
         maintainer=find_meta("author"),

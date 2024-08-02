@@ -1,6 +1,6 @@
 import numpy as np
 from protomidpy import hankel
-from protomidpyl import covariance
+from protomidpy import covariance
 ARCSEC_TO_RAD= 1/206265.0
 
 def return_log_det(K_cov_inv):
@@ -269,7 +269,6 @@ def log_probability_geo_for_emcee(theta, N_d, r_dist, u_d, v_d, vis_d, sigma_d, 
     H_mat = hankel.make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos,  dpix, qmax)
     log_evidence , test1, test2, test3 = evidence_for_prob(theta, r_dist, H_mat, q_dist_model, \
         H_mat_model,  vis_d, sigma_d, cov = cov)
-    print(log_evidence, theta)
     log_pos = lp + log_evidence
     return log_pos,  log_evidence, lp
 
