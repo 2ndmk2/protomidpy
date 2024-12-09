@@ -4,7 +4,7 @@ Estimating itensity radial profile & geometry & hyperparameters for dust continu
 https://academic.oup.com/mnras/article/532/2/1361/7699107
 
 ## Doc 
-The manual is found in /doc
+[The manual is found in /doc](./doc/doc_protomidpy.pdf)
 
 
 ## Author
