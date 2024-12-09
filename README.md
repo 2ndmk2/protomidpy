@@ -6,7 +6,7 @@ If you use *protomidpy*, please cite the following paper:
 **[Aizawa, Muto & Momose, 2024](https://academic.oup.com/mnras/article/532/2/1361/7699107)**
 
 ## Installation and Usage  
-Please follow the manual [(here)](./doc/doc_protomidpy.pdf).
+Please follow the manual [(here)](https://github.com/2ndmk2/protomidpy/blob/main/doc/doc_protomidpy.pdf).
 
 ## Code Author
 Masataka Aizawa (aizw.masa@gmail.com)
