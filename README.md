@@ -1,11 +1,12 @@
 
 # protomidpy
-Estimating itensity radial profile & geometry & hyperparameters for dust continuum emission of proto-planetary disks in radio. For the detail, please refer to Aizawa, Muto, Momose 2024  
-https://academic.oup.com/mnras/article/532/2/1361/7699107
+*protomidpy* is a python code for estimating annular structure of proto-planetary disks, including geometry and hyperparameters, from radio interferometric observation. The code is open to use, but the author does not take any responsibility for the problem it might cause.  
 
-## Doc 
-The manual is [here](./doc/doc_protomidpy.pdf).
+If you use *protomidpy*, please cite the following paper:
+**[Aizawa, Muto & Momose, 2024](https://academic.oup.com/mnras/article/532/2/1361/7699107)**
 
+## Installation and Usage  
+Please follow the manual [(here)](./doc/doc_protomidpy.pdf).
 
-## Author
+## Code Author
 Masataka Aizawa (aizw.masa@gmail.com)
