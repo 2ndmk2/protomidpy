@@ -12,6 +12,5 @@ Please follow the manual [(here)](https://github.com/2ndmk2/protomidpy/blob/main
 Masataka Aizawa (aizw.masa@gmail.com)
 
 ## License
-Copyright 2024 Masataka Aizawa. 
-
+Copyright 2024 Masataka Aizawa.  
 *protomidpy* is free software made available under the MIT License. 
