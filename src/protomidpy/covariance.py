@@ -170,8 +170,8 @@ def RBF_add_noise(obst, theta, simga = 1e-8):
 def RBF_add_noise_double(obst, theta, simga = 1e-8):
     alpha = 10.0**theta[1]
     gamma= ARCSEC_TO_RAD*theta[0]
-    gamma2= ARCSEC_TO_RAD*theta[6]
-    print(theta[0], theta[6])
+    gamma2= ARCSEC_TO_RAD*theta[-1]
+    print(theta[0], theta[-1])
     if np.shape(np.shape(obst))[0]==1:
         Dt = obst - np.array([obst]).T
     elif np.shape(np.shape(obst))[0]==2:

@@ -28,7 +28,7 @@ def grid_search_evidence_core(gamma_arc_arr, log10_alpha_arr, other_theta, N_d, 
         term2_arr = []
         term3_arr = []
         for (j,alpha) in enumerate(log10_alpha_arr):
-            theta = [gamma, alpha, other_theta[0], other_theta[1], other_theta[2], other_theta[3], other_theta[4]]
+            theta = np.concatenate(([gamma, alpha], np.asarray(other_theta)))
             evidence_now, term1, term2,term3= prob.test_for_prob(theta, r_dist, u_d, v_d, vis_d, sigma_d,  R_out, N, dpix, q_dist_model, H_mat_model, factor_all, r_pos,  cov, nu)
             term1_arr.append(term1)
             term2_arr.append(term2)
@@ -60,7 +60,7 @@ def grid_search_evidence_2(gamma_arc_arr, gamma2_arc_arr, log10_alpha_arr, other
         term3_arr = []
         for (j,alpha) in enumerate(log10_alpha_arr):
             for (k,gamma2) in enumerate(gamma2_arc_arr):
-                theta = [gamma, alpha, other_theta[0], other_theta[1], other_theta[2], other_theta[3], other_theta[4], gamma2]
+                theta = np.concatenate(([gamma, alpha], np.asarray(other_theta), [gamma2]))
                 evidence_now, term1, term2,term3= prob.test_for_prob(theta, r_dist, u_d, v_d, vis_d, sigma_d,  R_out, N, dpix, q_dist_model, H_mat_model, factor_all, r_pos,  cov, q_constrained, nu)
                 term1_arr.append(term1)
                 term2_arr.append(term2)
@@ -186,5 +186,4 @@ def sample_mcmc_full(u_d, v_d, vis_d, wgt_d, cov, nu_now,  n_walker, n_chain, pa
     mcmc_plot = True
     if mcmc_plot:
         plotter.mcmc_plot(sample_out_name + ".npz", out_dir, header_name_for_file)
-
 

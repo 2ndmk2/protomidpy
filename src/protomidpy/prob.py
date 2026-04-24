@@ -50,18 +50,19 @@ def log_prior_geo(theta, para_prior_dic):
         log_prior_sum (theta): log prior
     """
     log_prior_sum = 0
-    if len(theta)==7:
-        gamma_arr = [theta[0], theta[6]]
-        if theta[0] > theta[6]:
+    if hankel.theta_has_second_gamma(theta):
+        gamma_arr = [theta[0], theta[-1]]
+        if theta[0] > theta[-1]:
             return -np.inf
     else:
         gamma_arr = [theta[0]]
     alpha_arr = [theta[1]]
-    cosi = theta[2]
-    pa = theta[3]
-    delta_x = theta[4]
-    delta_y = theta[5]
-    arcsecond = 1/206265.0
+    geometry = hankel.geometry_from_theta(theta, offset_in_arcsec=False, warp_in_arcsec=False)
+    cosi = geometry["cosi"]
+    pa = geometry["pa"]
+    delta_x = geometry["delta_x"]
+    delta_y = geometry["delta_y"]
+    warp_params = geometry["warp"]
     for gamma_now in gamma_arr:
         if para_prior_dic["min_scale"]  <= gamma_now <= para_prior_dic["max_scale"]:
             log_prior_sum += 0
@@ -91,6 +92,22 @@ def log_prior_geo(theta, para_prior_dic):
         log_prior_sum += 0
     else:
         return -np.inf
+
+    if warp_params is not None:
+        if not 0 <= warp_params["cosi_outer"] <= 1:
+            return -np.inf
+        if not 0 <= warp_params["pa_outer"] <= np.pi:
+            return -np.inf
+        warp_r_transition = theta[8]
+        warp_r_width = theta[9]
+        warp_r_transition_min = para_prior_dic.get("warp_r_transition_min", 0.0)
+        warp_r_transition_max = para_prior_dic.get("warp_r_transition_max", np.inf)
+        warp_r_width_min = para_prior_dic.get("warp_r_width_min", 0.0)
+        warp_r_width_max = para_prior_dic.get("warp_r_width_max", np.inf)
+        if not warp_r_transition_min <= warp_r_transition <= warp_r_transition_max:
+            return -np.inf
+        if not warp_r_width_min < warp_r_width <= warp_r_width_max:
+            return -np.inf
 
     return log_prior_sum
 
@@ -148,18 +165,26 @@ def test_for_prob_mat_w_fixed_H_mat(other_theta, log10_alpha_arr, gamma_arc_arr,
     term3_mat = []
     gamma_mat = np.zeros( (len(gamma_arc_arr), len( log10_alpha_arr)))
     alpha_mat = np.zeros( (len(gamma_arc_arr), len( log10_alpha_arr)))
-    cosi = other_theta[0]
-    pa = other_theta[1]
-    delta_x = other_theta[2] *ARCSEC_TO_RAD
-    delta_y = other_theta[3] *ARCSEC_TO_RAD
+    geometry = hankel.geometry_from_theta(
+        np.concatenate(([0.0, 0.0], np.asarray(other_theta))),
+        offset_in_arcsec=True,
+        warp_in_arcsec=True,
+    )
+    cosi = geometry["cosi"]
+    pa = geometry["pa"]
+    delta_x = geometry["delta_x"]
+    delta_y = geometry["delta_y"]
+    warp_params = geometry["warp"]
 
     factor_all, r_pos = hankel.make_hankel_matrix_kataware( R_out, N, dpix)
-    q_max_for_dpix = give_q_max(u_d, v_d, other_theta[0], other_theta[1])
+    r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
+    q_max_for_dpix = give_q_max(u_d, v_d, cosi, pa, warp_params=warp_params, radii=r_n)
     if dpix is None:
         dpix= 0.5/q_max_for_dpix
-    r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
     r_dist = hankel.make_2d_mat_for_dist(r_n)
-    H_mat = hankel.make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix,qmax)
+    H_mat = hankel.make_hankel_at_inc_pa_w_offset(
+        u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix, qmax, warp_params=warp_params
+    )
     V_A_minus1_U = H_mat.T@hankel.diag_multi(sigma_d, H_mat)
     V_A_minus1_d = H_mat.T@(sigma_d*vis_d)
 
@@ -169,7 +194,7 @@ def test_for_prob_mat_w_fixed_H_mat(other_theta, log10_alpha_arr, gamma_arc_arr,
         term2_arr = []
         term3_arr = []
         for (j,alpha) in enumerate(log10_alpha_arr):
-            theta = [gamma, alpha, other_theta[0], other_theta[1], other_theta[2], other_theta[3], other_theta[4]]
+            theta = np.concatenate(([gamma, alpha], np.asarray(other_theta)))
             K_cov, K_cov_inv  = covariance.covariance_return(cov, theta,r_dist, q_dist_model, H_mat_model, H_mat)
             mat_inside = K_cov_inv + V_A_minus1_U
             mat_inside_inv = np.linalg.inv(mat_inside) 
@@ -205,36 +230,29 @@ def test_for_prob(theta,  r_dist, u_d, v_d, vis_d, sigma_d,  R_out, N, dpix, q_d
     Returns:
         log_pos (float): log posterior
     """
-    q_max_for_dpix = give_q_max(u_d, v_d, theta[2], theta[3])
+    geometry = hankel.geometry_from_theta(theta)
+    r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
+    q_max_for_dpix = give_q_max(u_d, v_d, geometry["cosi"], geometry["pa"], warp_params=geometry["warp"], radii=r_n)
     if dpix is None:
         dpix= 0.5/q_max_for_dpix
-    r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
     r_dist = hankel.make_2d_mat_for_dist(r_n)
-    cosi = theta[2]
-    pa = theta[3]
-    delta_x = theta[4] *ARCSEC_TO_RAD
-    delta_y = theta[5] *ARCSEC_TO_RAD
-    H_mat = hankel.make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix,qmax)
+    cosi = geometry["cosi"]
+    pa = geometry["pa"]
+    delta_x = geometry["delta_x"]
+    delta_y = geometry["delta_y"]
+    H_mat = hankel.make_hankel_at_inc_pa_w_offset(
+        u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix, qmax, warp_params=geometry["warp"]
+    )
     log_evidence , logdet_mat_inside, logdet_cov, last_term = evidence_for_prob(theta, r_dist, H_mat, q_dist_model, H_mat_model,  vis_d, sigma_d, cov = cov,  nu = nu )
     return log_evidence , logdet_mat_inside, logdet_cov, last_term
 
-def give_q_max(u_d, v_d, cosi, pa):
-    cos_pa = np.cos(pa)
-    sin_pa = np.sin(pa)
-    u_new_d = -cos_pa * u_d + sin_pa *v_d
-    v_new_d = -sin_pa * u_d - cos_pa *v_d
-    u_new_d = cosi * u_new_d
-    q_max = np.max(( (u_new_d)**2 + v_new_d**2)**0.5)
+def give_q_max(u_d, v_d, cosi, pa, warp_params=None, radii=None):
+    q_dist = hankel.make_q_dist_at_inc_pa(u_d, v_d, cosi, pa, radii=radii, warp_params=warp_params)
+    q_max = np.max(q_dist)
     return q_max
 
-def give_q(u_d, v_d, cosi, pa):
-
-    cos_pa = np.cos(pa)
-    sin_pa = np.sin(pa)
-    u_new_d = -cos_pa * u_d + sin_pa *v_d
-    v_new_d = -sin_pa * u_d - cos_pa *v_d
-    u_new_d = cosi * u_new_d
-    q_d = ( (u_new_d)**2 + v_new_d**2)**0.5
+def give_q(u_d, v_d, cosi, pa, warp_params=None, radii=None):
+    q_d = hankel.make_q_dist_at_inc_pa(u_d, v_d, cosi, pa, radii=radii, warp_params=warp_params)
     return q_d
 
 def log_probability_geo_for_emcee(theta, N_d, r_dist, u_d, v_d, vis_d, sigma_d,  para_prior_dic, R_out, N, dpix, q_dist_model, H_mat_model, factor_all, r_pos, cov="matern"):
@@ -256,19 +274,22 @@ def log_probability_geo_for_emcee(theta, N_d, r_dist, u_d, v_d, vis_d, sigma_d, 
     lp = log_prior_geo(theta, para_prior_dic)
     if not np.isfinite(lp):
         return -np.inf, -1e100, -1e100
-    q_max_for_dpix = give_q_max(u_d, v_d, theta[2], theta[3])
+    geometry = hankel.geometry_from_theta(theta)
+    r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
+    q_max_for_dpix = give_q_max(u_d, v_d, geometry["cosi"], geometry["pa"], warp_params=geometry["warp"], radii=r_n)
     if dpix is None:
         dpix= 0.5/q_max_for_dpix
     R_out = N * dpix    
     r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
     r_dist = hankel.make_2d_mat_for_dist(r_n)
-    cosi = theta[2]
-    pa = theta[3]
-    delta_x = theta[4] * ARCSEC_TO_RAD
-    delta_y = theta[5]* ARCSEC_TO_RAD
-    H_mat = hankel.make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos,  dpix, qmax)
+    cosi = geometry["cosi"]
+    pa = geometry["pa"]
+    delta_x = geometry["delta_x"]
+    delta_y = geometry["delta_y"]
+    H_mat = hankel.make_hankel_at_inc_pa_w_offset(
+        u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix, qmax, warp_params=geometry["warp"]
+    )
     log_evidence , test1, test2, test3 = evidence_for_prob(theta, r_dist, H_mat, q_dist_model, \
         H_mat_model,  vis_d, sigma_d, cov = cov)
     log_pos = lp + log_evidence
     return log_pos,  log_evidence, lp
-

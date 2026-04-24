@@ -49,13 +49,16 @@ def sample_radial_profile(r_dist, theta, u_d, v_d, R_out, N, dpix,  d, sigma_d, 
         I_mfreq (ndarray): 2d array for radial profile for nu_arr
     """
     #print(R_out, N, dpix)
-    cosi = theta[2]
-    pa = theta[3]
-    delta_x = theta[4]* ARCSEC_TO_RAD
-    delta_y = theta[5]* ARCSEC_TO_RAD
+    geometry = hankel.geometry_from_theta(theta)
+    cosi = geometry["cosi"]
+    pa = geometry["pa"]
+    delta_x = geometry["delta_x"]
+    delta_y = geometry["delta_y"]
     r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
     factor_all, r_pos = hankel.make_hankel_matrix_kataware( R_out, N, dpix)
-    H_mat = hankel.make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix,  qmax)
+    H_mat = hankel.make_hankel_at_inc_pa_w_offset(
+        u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix, qmax, warp_params=geometry["warp"]
+    )
     V_A_minus1_U = H_mat.T@hankel.diag_multi(sigma_d, H_mat)
     V_A_minus1_d = H_mat.T@(sigma_d*d)
     K_cov, K_cov_inv  = covariance.covariance_return(cov, theta,r_dist, q_dist_model, H_mat_model, H_mat)

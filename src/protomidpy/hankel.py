@@ -2,6 +2,89 @@ import numpy as np
 from scipy.special import j0, j1, jn_zeros, jv
 ARCSEC_TO_RAD= 1/206265.0
 
+
+def theta_has_warp(theta):
+    return len(theta) >= 10
+
+
+def theta_has_second_gamma(theta):
+    return len(theta) in (7, 11)
+
+
+def geometry_from_theta(theta, offset_in_arcsec=True, warp_in_arcsec=True):
+    offset_scale = ARCSEC_TO_RAD if offset_in_arcsec else 1.0
+    warp_scale = ARCSEC_TO_RAD if warp_in_arcsec else 1.0
+    geometry = {
+        "cosi": float(theta[2]),
+        "pa": float(theta[3]),
+        "delta_x": float(theta[4]) * offset_scale,
+        "delta_y": float(theta[5]) * offset_scale,
+        "warp": None,
+    }
+    if theta_has_warp(theta):
+        geometry["warp"] = {
+            "cosi_outer": float(theta[6]),
+            "pa_outer": float(theta[7]),
+            "r_transition": float(theta[8]) * warp_scale,
+            "r_width": float(theta[9]) * warp_scale,
+        }
+    return geometry
+
+
+def _sigmoid(x):
+    x = np.clip(x, -60.0, 60.0)
+    return 1.0/(1.0 + np.exp(-x))
+
+
+def _interpolate_pa_profile(pa_inner, pa_outer, blend):
+    # PA is periodic with pi for an axisymmetric disk.
+    delta_pa = (pa_outer - pa_inner + 0.5 * np.pi) % np.pi - 0.5 * np.pi
+    return np.mod(pa_inner + blend * delta_pa, np.pi)
+
+
+def make_cosi_pa_profile(radii, cosi, pa, warp_params=None):
+    radii = np.asarray(radii, dtype=float)
+    if warp_params is None:
+        cosi_profile = np.full_like(radii, cosi, dtype=float)
+        pa_profile = np.full_like(radii, pa, dtype=float)
+        return cosi_profile, pa_profile
+
+    width = float(warp_params["r_width"])
+    if width <= 0:
+        raise ValueError("warp transition width must be positive.")
+    blend = _sigmoid((radii - float(warp_params["r_transition"])) / width)
+    cosi_outer = float(warp_params["cosi_outer"])
+    pa_outer = float(warp_params["pa_outer"])
+    cosi_profile = cosi + (cosi_outer - cosi) * blend
+    pa_profile = _interpolate_pa_profile(pa, pa_outer, blend)
+    return cosi_profile, pa_profile
+
+
+def make_q_dist_at_inc_pa(u_d, v_d, cosi, pa, radii=None, warp_params=None, return_profile=False):
+    if warp_params is None:
+        cos_pa = np.cos(pa)
+        sin_pa = np.sin(pa)
+        u_new_d = cos_pa * u_d - sin_pa * v_d
+        v_new_d = sin_pa * u_d + cos_pa * v_d
+        u_new_d = u_new_d * cosi
+        q_dist = (u_new_d**2 + v_new_d**2)**0.5
+        if return_profile:
+            return q_dist, np.array([cosi]), np.array([pa])
+        return q_dist
+
+    if radii is None:
+        raise ValueError("radii must be given when warp_params is set.")
+    cosi_profile, pa_profile = make_cosi_pa_profile(radii, cosi, pa, warp_params)
+    cos_pa = np.cos(pa_profile)[None, :]
+    sin_pa = np.sin(pa_profile)[None, :]
+    u_new_d = cos_pa * u_d[:, None] - sin_pa * v_d[:, None]
+    v_new_d = sin_pa * u_d[:, None] + cos_pa * v_d[:, None]
+    u_new_d = u_new_d * cosi_profile[None, :]
+    q_dist = (u_new_d**2 + v_new_d**2)**0.5
+    if return_profile:
+        return q_dist, cosi_profile, pa_profile
+    return q_dist
+
 def diag_multi(diag_sigma, mat):
     return (diag_sigma * mat.T).T
 
@@ -64,9 +147,17 @@ def make_hankel_matrix_kataware(R_out, N, dpix):
     return  scale_all, r_pos
 
 def make_hankel_matrix_from_kataware(q, scale_all, r_pos, q_max, cosi):
-    H_mat = scale_all * j0(np.outer(q,r_pos))
-    H_mat[q>q_max] = 0
-    return cosi * H_mat
+    q = np.asarray(q)
+    scale_all = np.asarray(scale_all)
+    if q.ndim == 1:
+        H_mat = scale_all[None, :] * j0(np.outer(q, r_pos))
+        H_mat = np.where(q[:, None] > q_max, 0, H_mat)
+    else:
+        H_mat = scale_all[None, :] * j0(q * r_pos[None, :])
+        H_mat = np.where(q > q_max, 0, H_mat)
+    if np.ndim(cosi) == 0:
+        return cosi * H_mat
+    return H_mat * np.asarray(cosi)[None, :]
 
 def make_hankel_matrix(q, R_out, N, cosi):
     j_nplus = jn_zeros(0, N+1)
@@ -76,9 +167,16 @@ def make_hankel_matrix(q, R_out, N, cosi):
     factor = ( 1/ARCSEC_TO_RAD**2) * 4 * np.pi * R_out**2 / (j_nN**2)
     scale_factor = 1/(j1(j_nk) ** 2)
     q_max =j_nN /(2 * np.pi * R_out)
-    H_mat = factor * scale_factor * j0(np.outer(q, 2 * np.pi * r_pos))
-    H_mat[q>q_max] = 0
-    return cosi * H_mat
+    q = np.asarray(q)
+    if q.ndim == 1:
+        H_mat = factor * scale_factor * j0(np.outer(q, 2 * np.pi * r_pos))
+        H_mat = np.where(q[:, None] > q_max, 0, H_mat)
+    else:
+        H_mat = factor * scale_factor * j0(q * (2 * np.pi * r_pos)[None, :])
+        H_mat = np.where(q > q_max, 0, H_mat)
+    if np.ndim(cosi) == 0:
+        return cosi * H_mat
+    return H_mat * np.asarray(cosi)[None, :]
 
 
 def make_hankel_wt_fixed_q(q_dist, R_out, N, factor_all, r_pos, dpix,q_max):
@@ -86,14 +184,22 @@ def make_hankel_wt_fixed_q(q_dist, R_out, N, factor_all, r_pos, dpix,q_max):
     H_mat_all = np.concatenate([H_mat, np.zeros(np.shape(H_mat))])
     return H_mat_all
 
-def make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix,q_max):
-    cos_pa = np.cos(pa)
-    sin_pa = np.sin(pa)
-    u_new_d = cos_pa * u_d - sin_pa *v_d
-    v_new_d = sin_pa * u_d + cos_pa *v_d
-    u_new_d = u_new_d * cosi
-    q_dist = (u_new_d**2 + v_new_d **2)**0.5
-    H_mat = make_hankel_matrix_from_kataware(q_dist,factor_all, r_pos, q_max, cosi)
+def make_hankel_at_inc_pa(u_d, v_d, cosi, pa, R_out, N, factor_all, r_pos, dpix, q_max, warp_params=None):
+    radii = r_pos/(2 * np.pi)
+    q_dist, cosi_profile, pa_profile = make_q_dist_at_inc_pa(
+        u_d, v_d, cosi, pa, radii=radii, warp_params=warp_params, return_profile=True
+    )
+    if warp_params is None:
+        cosi_factor = cosi
+    else:
+        # For a warped disk, each radial basis column H[:, n] must carry cos(i(r_n)).
+        cosi_factor = cosi_profile
+    return make_hankel_matrix_from_kataware(q_dist, factor_all, r_pos, q_max, cosi_factor)
+
+def make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix, q_max, warp_params=None):
+    H_mat = make_hankel_at_inc_pa(
+        u_d, v_d, cosi, pa, R_out, N, factor_all, r_pos, dpix, q_max, warp_params=warp_params
+    )
     diag_mat_cos = np.cos(2 * np.pi * (- delta_x * u_d - delta_y * v_d))
     diag_mat_sin = np.sin(2 * np.pi * (- delta_x * u_d - delta_y * v_d))
     diag_mat = np.append(diag_mat_cos, diag_mat_sin)

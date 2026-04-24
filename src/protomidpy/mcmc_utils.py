@@ -2,17 +2,50 @@ import numpy as np
 from protomidpy import hankel
 ARCSEC_TO_RAD= 1/206265.0
 
+
+def _effective_pa(pa_profile, weights):
+    weights = np.asarray(weights, dtype=float)
+    if np.sum(weights) <= 0:
+        return float(pa_profile[0])
+    comp = np.sum(weights * np.exp(2j * np.asarray(pa_profile)))
+    return 0.5 * np.mod(np.angle(comp), 2 * np.pi)
+
+
+def _warp_output_geometry(I_model, q_dist, cosi_profile, pa_profile):
+    weights = np.abs(np.asarray(I_model, dtype=float))
+    if np.sum(weights) <= 0:
+        weights = np.ones_like(weights)
+    weights = weights/np.sum(weights)
+    q_dist_eff = np.dot(q_dist, weights)
+    cosi_eff = float(np.dot(weights, cosi_profile))
+    pa_eff = _effective_pa(pa_profile, weights)
+    return q_dist_eff, cosi_eff, pa_eff
+
 def obs_model_comparison(I_model, u_d, v_d, theta, d_data, R_out, N, dpix):
-    cosi = theta[2]
-    pa = theta[3]
-    delta_x = theta[4] * ARCSEC_TO_RAD
-    delta_y = theta[5]* ARCSEC_TO_RAD
-    cos_pa = np.cos(pa)
-    sin_pa = np.sin(pa)
-    u_new_d_before = -cos_pa * u_d + sin_pa *v_d
-    v_new_d = -sin_pa * u_d - cos_pa *v_d
-    u_new_d = u_new_d_before * cosi
-    q_dist = (u_new_d**2 + v_new_d **2)**0.5    
+    geometry = hankel.geometry_from_theta(theta)
+    cosi = geometry["cosi"]
+    pa = geometry["pa"]
+    delta_x = geometry["delta_x"]
+    delta_y = geometry["delta_y"]
+    warp_params = geometry["warp"]
+    if warp_params is None:
+        cos_pa = np.cos(pa)
+        sin_pa = np.sin(pa)
+        u_new_d_before = -cos_pa * u_d + sin_pa *v_d
+        v_new_d = -sin_pa * u_d - cos_pa *v_d
+        u_new_d = u_new_d_before * cosi
+        q_dist = (u_new_d**2 + v_new_d **2)**0.5
+    else:
+        r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
+        q_dist_ring, cosi_profile, pa_profile = hankel.make_q_dist_at_inc_pa(
+            u_d, v_d, cosi, pa, radii=r_n, warp_params=warp_params, return_profile=True
+        )
+        q_dist, cosi, pa = _warp_output_geometry(I_model, q_dist_ring, cosi_profile, pa_profile)
+        cos_pa = np.cos(pa)
+        sin_pa = np.sin(pa)
+        u_new_d_before = -cos_pa * u_d + sin_pa *v_d
+        v_new_d = -sin_pa * u_d - cos_pa *v_d
+        u_new_d = u_new_d_before * cosi
     diag_mat_cos = np.cos(2 * np.pi * (- delta_x * u_d - delta_y * v_d))
     diag_mat_sin = np.sin(2 * np.pi * (- delta_x * u_d - delta_y * v_d))
     diag_mat_cos_inv = np.cos(2 * np.pi * (delta_x * u_d + delta_y * v_d))
@@ -22,16 +55,24 @@ def obs_model_comparison(I_model, u_d, v_d, theta, d_data, R_out, N, dpix):
     d_imag = d_data[n_d:]
     d_real_mod = d_real * diag_mat_cos_inv  - d_imag * diag_mat_sin_inv
     d_imag_mod = + d_real * diag_mat_sin_inv + d_imag * diag_mat_cos_inv
-    H_mat = hankel.make_hankel_matrix(q_dist, R_out, N,  cosi)
+    if warp_params is None:
+        H_mat = hankel.make_hankel_matrix(q_dist, R_out, N, cosi)
+    else:
+        factor_all, r_pos = hankel.make_hankel_matrix_kataware(R_out, N, dpix)
+        H_mat = hankel.make_hankel_at_inc_pa(
+            u_d, v_d, geometry["cosi"], geometry["pa"], R_out, N, factor_all, r_pos, dpix, qmax, warp_params=warp_params
+        )
     vis_model = np.dot(H_mat, I_model) 
     vis_model_imag = np.zeros(np.shape(vis_model))
     return H_mat, q_dist, d_real_mod, d_imag_mod, vis_model, vis_model_imag, u_new_d_before, v_new_d
 
 def make_model_and_residual(u_d, v_d, theta, I_model, vis_data, R_out, N, dpix):
-    cosi = theta[2]
-    pa = theta[3]
-    delta_x = theta[4] * ARCSEC_TO_RAD
-    delta_y = theta[5]* ARCSEC_TO_RAD
+    geometry = hankel.geometry_from_theta(theta)
+    cosi = geometry["cosi"]
+    pa = geometry["pa"]
+    delta_x = geometry["delta_x"]
+    delta_y = geometry["delta_y"]
+    warp_params = geometry["warp"]
     cos_pa = np.cos(pa)
     sin_pa = np.sin(pa)
     u_new_d_before = cos_pa * u_d - sin_pa *v_d
@@ -40,7 +81,14 @@ def make_model_and_residual(u_d, v_d, theta, I_model, vis_data, R_out, N, dpix):
     q_dist = (u_new_d**2 + v_new_d **2)**0.5 
     diag_mat_cos = np.cos(2 * np.pi * (- delta_x * u_d - delta_y * v_d))
     diag_mat_sin = np.sin(2 * np.pi * (- delta_x * u_d - delta_y * v_d))
-    H_mat = hankel.make_hankel_matrix(q_dist, R_out, N,  cosi)
+    if warp_params is None:
+        H_mat = hankel.make_hankel_matrix(q_dist, R_out, N, cosi)
+    else:
+        factor_all, r_pos = hankel.make_hankel_matrix_kataware(R_out, N, dpix)
+        r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
+        H_mat = hankel.make_hankel_at_inc_pa(
+            u_d, v_d, geometry["cosi"], geometry["pa"], R_out, N, factor_all, r_pos, dpix, qmax, warp_params=warp_params
+        )
     vis_model = np.dot(H_mat, I_model) 
     vis_model_real = diag_mat_cos * vis_model 
     vis_model_imag = diag_mat_sin * vis_model 
@@ -122,6 +170,15 @@ def make_initial_geo_offset(para_dic,  nwalker,  x_est = None, y_est = None, tar
     para_arr_arr.append(pa_arr)
     para_arr_arr.append(delta_x_arr)
     para_arr_arr.append(delta_y_arr)
+    if "warp_cosi_out_value" in para_dic:
+        warp_cosi_out_arr = para_dic["warp_cosi_out_value"] + para_dic["warp_cosi_out_scatter"] * (np.random.rand(nwalker) - 0.5)
+        warp_pa_out_arr = para_dic["warp_pa_out_value"] * np.pi/180 + para_dic["warp_pa_out_scatter"] * (np.random.rand(nwalker) - 0.5) * np.pi/180
+        warp_r_transition_arr = para_dic["warp_r_transition_value"] + para_dic["warp_r_transition_scatter"] * (np.random.rand(nwalker) - 0.5)
+        warp_r_width_arr = para_dic["warp_r_width_value"] + para_dic["warp_r_width_scatter"] * (np.random.rand(nwalker) - 0.5)
+        para_arr_arr.append(warp_cosi_out_arr)
+        para_arr_arr.append(warp_pa_out_arr)
+        para_arr_arr.append(warp_r_transition_arr)
+        para_arr_arr.append(warp_r_width_arr)
     if cov=="RBF_double":
         para_arr_arr.append(gamma2_arr)
     para_arr_arr = np.array(para_arr_arr)
