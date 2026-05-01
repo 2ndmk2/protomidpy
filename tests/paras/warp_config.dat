@@ -5,4 +5,4 @@ Nwalker 32
 Nchain 1000
 Qmin 100
 Qmax 10000000
-Out_folder ./tests/result_warp
+Out_folder ./result
