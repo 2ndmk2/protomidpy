@@ -95,7 +95,7 @@ def log_prior_geo(theta, para_prior_dic):
     return log_prior_sum
 
 
-def evidence_for_prob(theta, r_dist,  H_mat, q_dist_model, H_mat_model, d,  sigma_d, cov = "matern",  nu = -100):
+def evidence_for_prob(theta, r_dist,  H_mat, q_dist_model, H_mat_model, d,  sigma_d, cov = "RBF",  nu = -100):
 
     V_A_minus1_U = H_mat.T@hankel.diag_multi(sigma_d, H_mat)
     V_A_minus1_d = H_mat.T@(sigma_d*d)
@@ -140,7 +140,7 @@ def logp_for_emcee_two(theta, cov, r_dist, para_prior_dic, q_dist_model, H_mat_m
     return log_pos,  log_evidence, lp
 
 
-def test_for_prob_mat_w_fixed_H_mat(other_theta, log10_alpha_arr, gamma_arc_arr,  r_dist, u_d, v_d, vis_d, sigma_d,  R_out, N, dpix, q_dist_model, H_mat_model,  cov="matern", nu = -100):
+def test_for_prob_mat_w_fixed_H_mat(other_theta, log10_alpha_arr, gamma_arc_arr,  r_dist, u_d, v_d, vis_d, sigma_d,  R_out, N, dpix, q_dist_model, H_mat_model,  cov="RBF", nu = -100):
 
     evidence_mat = []
     term1_mat = []
@@ -190,7 +190,7 @@ def test_for_prob_mat_w_fixed_H_mat(other_theta, log10_alpha_arr, gamma_arc_arr,
         
     return evidence_mat, gamma_mat, alpha_mat, term1_mat, term2_mat, term3_mat
 
-def test_for_prob(theta,  r_dist, u_d, v_d, vis_d, sigma_d,  R_out, N, dpix, q_dist_model, H_mat_model, factor_all, r_pos, cov="matern", nu = -100):
+def test_for_prob(theta,  r_dist, u_d, v_d, vis_d, sigma_d,  R_out, N, dpix, q_dist_model, H_mat_model, factor_all, r_pos, cov="RBF", nu = -100):
     """ Compute log posterior 
 
     Args:
@@ -237,7 +237,7 @@ def give_q(u_d, v_d, cosi, pa):
     q_d = ( (u_new_d)**2 + v_new_d**2)**0.5
     return q_d
 
-def log_probability_geo_for_emcee(theta, N_d, r_dist, u_d, v_d, vis_d, sigma_d,  para_prior_dic, R_out, N, dpix, q_dist_model, H_mat_model, factor_all, r_pos, cov="matern"):
+def log_probability_geo_for_emcee(theta, N_d, r_dist, u_d, v_d, vis_d, sigma_d,  para_prior_dic, R_out, N, dpix, q_dist_model, H_mat_model, factor_all, r_pos, cov="RBF"):
     """ Compute log posterior 
 
     Args:

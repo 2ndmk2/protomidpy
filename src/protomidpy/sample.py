@@ -30,7 +30,7 @@ def sample_radial_profile_fixed_geo(cov, theta,r_dist, q_dist_model, H_mat_model
     return sample_one
 
 
-def sample_radial_profile(r_dist, theta, u_d, v_d, R_out, N, dpix,  d, sigma_d, q_dist_model, H_mat_model, cov="matern", nu = -100 ):
+def sample_radial_profile(r_dist, theta, u_d, v_d, R_out, N, dpix,  d, sigma_d, q_dist_model, H_mat_model, cov="RBF", nu = -100 ):
     """ Take one sample for model given hyper parameters
 
     Args:
@@ -65,7 +65,7 @@ def sample_radial_profile(r_dist, theta, u_d, v_d, R_out, N, dpix,  d, sigma_d, 
     sample_one = np.random.multivariate_normal(mean_gaussian, mat_inside_inv)
     return sample_one, H_mat
 
-def map_map(r_dist, theta, u_d, v_d, R_out, N, dpix,  d, sigma_d, q_dist_model, H_mat_model, cov="matern", nu = -100 ):
+def map_map(r_dist, theta, u_d, v_d, R_out, N, dpix,  d, sigma_d, q_dist_model, H_mat_model, cov="cov", nu = -100 ):
     """ Take one sample for model given hyper parameters
 
     Args:
@@ -95,3 +95,19 @@ def map_map(r_dist, theta, u_d, v_d, R_out, N, dpix,  d, sigma_d, q_dist_model, 
     mat_inside_inv = np.linalg.inv(mat_inside)
     mean_gaussian =  np.dot(mat_inside_inv, V_A_minus1_d)
     return mean_gaussian, H_mat
+
+def compute_resolution_matrix(r_dist, theta, u_d, v_d, R_out, N, dpix,  d, sigma_d, q_dist_model, H_mat_model, cov="cov", nu = -100 ):
+    cosi = theta[2]
+    pa = theta[3]
+    delta_x = theta[4]* ARCSEC_TO_RAD
+    delta_y = theta[5]* ARCSEC_TO_RAD
+    r_n, jn, qmax, q_n = hankel.make_collocation_points(R_out, N)
+    factor_all, r_pos = hankel.make_hankel_matrix_kataware( R_out, N, dpix)
+    H_mat = hankel.make_hankel_at_inc_pa_w_offset(u_d, v_d, cosi, pa, delta_x, delta_y, R_out, N, factor_all, r_pos, dpix,  qmax)
+    V_A_minus1_U = H_mat.T@hankel.diag_multi(sigma_d, H_mat)
+    V_A_minus1_d = H_mat.T@(sigma_d*d)
+    K_cov, K_cov_inv  = covariance.covariance_return(cov, theta,r_dist, q_dist_model, H_mat_model, H_mat)
+    mat_inside = K_cov_inv + V_A_minus1_U    
+    mat_inside_inv = np.linalg.inv(mat_inside)
+    B_resolution =  np.dot(np.dot(mat_inside_inv, H_mat.T*sigma_d),H_mat)
+    return B_resolution 
