@@ -43,11 +43,12 @@ for sample_now in sample_goods[:n_sample_for_rad,:]:
     flux_sampled, H_mat = sample.sample_radial_profile(r_dist, sample_now, u_grid_2d, v_grid_2d, R_out, \
                 nrad, dpix, d_data, sigma_mat_2d, q_dist_2d_model, H_mat_model, cov=cov)
     flux_arr.append(flux_sampled)
+B_resolution = sample.compute_resolution_matrix(r_dist, sample_best , u_grid_2d, v_grid_2d, R_out, nrad, dpix,  d_data, sigma_mat_2d, q_dist_2d_model, H_mat_model, cov=cov, nu = -100 )
 
 sample_one_taken, H_mat = sample.sample_radial_profile(r_dist, sample_best, u_grid_2d, v_grid_2d, R_out, \
                 nrad, dpix, d_data, sigma_mat_2d, q_dist_2d_model, H_mat_model, cov=cov)
 H_mat, q_dist, d_real_mod, d_imag_mod, vis_model_real, vis_model_imag, u_mod, v_mod= mcmc_utils.obs_model_comparison(sample_one_taken, u_d, v_d, sample_best, data_d , R_out, nrad, dpix)
 vis_model, residual  = mcmc_utils.make_model_and_residual(u_d, v_d, sample_best, sample_one_taken, vis_d, R_out, nrad, dpix)
 np.savez(out_file_for_model, r_n= r_n, param_map = sample_best, params_random_selected= sample_random_selected, flux_map_sample = sample_one_taken, flux_random_samples = flux_arr, 
-    vis_model_undeprojected = vis_model, residual_undeprojected = residual, qdist_deprojected = q_dist, vis_model_deprojected = vis_model_real+1j*vis_model_imag, data_deprojected = d_real_mod +1j * d_imag_mod, data_weights = wgt_d)
+    vis_model_undeprojected = vis_model, residual_undeprojected = residual, qdist_deprojected = q_dist, vis_model_deprojected = vis_model_real+1j*vis_model_imag, data_deprojected = d_real_mod +1j * d_imag_mod, data_weights = wgt_d, B_resolution = B_resolution)
 
