@@ -111,3 +111,6 @@ venv.bak/
 .pyright/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+/tests/
+._*
+.DS_Store

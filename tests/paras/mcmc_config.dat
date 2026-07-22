@@ -1,8 +1,0 @@
-Nrad 200
-Nbin 500
-Dpix 0.01
-Nwalker 32
-Nchain 1000
-Qmin 100
-Qmax 10000000
-Out_folder ./result

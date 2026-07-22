@@ -1,8 +1,0 @@
-Nrad 48
-Nbin 96
-Dpix 0.01
-Nwalker 24
-Nchain 4
-Qmin 100
-Qmax 10000000
-Out_folder ./tests/result_warp_smoke
